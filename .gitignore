@@ -13,6 +13,7 @@ build/
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 web/firebase-config.js
+firebase_options
 
 # Credenciales específicas
 .env
