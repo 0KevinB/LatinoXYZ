@@ -8,12 +8,15 @@ build/
 .idea/
 .vscode/
 *.iml
+*.apk
+*.ipa
 
 # Firebase
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 web/firebase-config.js
-firebase_options
+
+# Firebase configuración generada
 firebase_options.dart
 
 # Credenciales específicas
@@ -31,7 +34,32 @@ keys/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Logs y archivos temporales
 *.log
 *.tmp
+
+# Archivos específicos de arte_latino_xyz
+arte_latino_xyz/android/app/google-services.json
+
+# Archivos de caché generados
+pubspec.lock
+.flutter-*
+.macos/
+xcuserdata/
+
+# Web-specific
+build/web/
+web/.sass-cache/
+
+# Linux-specific (si decides activarlo en el futuro)
+linux/
+
+# Windows-specific
+windows/
+
+# Emuladores y testing
+test/tmp/
+test-results/
+coverage/
