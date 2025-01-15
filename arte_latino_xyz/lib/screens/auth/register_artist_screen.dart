@@ -23,7 +23,7 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
     'Otro'
   ];
 
-  List<File?> _selectedImages = List.filled(3, null);
+  final List<File?> _selectedImages = List.filled(3, null);
   final _picker = ImagePicker();
 
   Future<void> _pickImage(int index) async {

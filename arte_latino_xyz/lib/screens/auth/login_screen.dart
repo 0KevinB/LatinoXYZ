@@ -241,9 +241,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 24,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Row(
+                      : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.g_mobiledata, // O puedes usar Icons.google
                               size: 24,

@@ -1,4 +1,7 @@
 // lib/models/user_model.dart
+
+enum UserRole { user, artist, admin }
+
 class UserModel {
   final String uid;
   final String email;
@@ -6,7 +9,8 @@ class UserModel {
   final String? phone;
   final String? photoUrl;
   final DateTime createdAt;
-  final String authProvider; // 'email' o 'google'
+  final String authProvider;
+  final UserRole role;
 
   UserModel({
     required this.uid,
@@ -16,6 +20,7 @@ class UserModel {
     this.photoUrl,
     required this.createdAt,
     required this.authProvider,
+    this.role = UserRole.user,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +32,7 @@ class UserModel {
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
       'authProvider': authProvider,
+      'role': role.name,
     };
   }
 
@@ -40,6 +46,10 @@ class UserModel {
       createdAt:
           DateTime.parse(map['createdAt'] ?? DateTime.now().toIso8601String()),
       authProvider: map['authProvider'] ?? 'email',
+      role: UserRole.values.firstWhere(
+        (e) => e.name == map['role'],
+        orElse: () => UserRole.user,
+      ),
     );
   }
 
@@ -51,6 +61,7 @@ class UserModel {
     String? photoUrl,
     DateTime? createdAt,
     String? authProvider,
+    UserRole? role,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -60,6 +71,7 @@ class UserModel {
       photoUrl: photoUrl ?? this.photoUrl,
       createdAt: createdAt ?? this.createdAt,
       authProvider: authProvider ?? this.authProvider,
+      role: role ?? this.role,
     );
   }
 }
