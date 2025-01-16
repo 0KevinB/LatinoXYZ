@@ -11,10 +11,10 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -33,6 +33,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(

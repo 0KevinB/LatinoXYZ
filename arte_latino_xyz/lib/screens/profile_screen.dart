@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
 class ArtistProfilePage extends StatefulWidget {
-  const ArtistProfilePage({Key? key}) : super(key: key);
+  const ArtistProfilePage({super.key});
 
   @override
-  _ArtistProfilePageState createState() => _ArtistProfilePageState();
+  ArtistProfilePageState createState() => ArtistProfilePageState();
 }
 
-class _ArtistProfilePageState extends State<ArtistProfilePage> {
+class ArtistProfilePageState extends State<ArtistProfilePage> {
   bool isFollowing = false;
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -22,12 +25,13 @@ class _ArtistProfilePageState extends State<ArtistProfilePage> {
               clipBehavior: Clip.none,
               children: [
                 // Cover Image with curved bottom
+
                 Container(
                   height: 300,
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: NetworkImage(
-                          'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Wnc4V7HEr9kcW5jpbxFVDGzzutKtos.png'),
+                          'https://images.pexels.com/photos/8033769/pexels-photo-8033769.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'),
                       fit: BoxFit.cover,
                     ),
                     borderRadius: BorderRadius.vertical(
@@ -52,7 +56,7 @@ class _ArtistProfilePageState extends State<ArtistProfilePage> {
                         ),
                         image: DecorationImage(
                           image: NetworkImage(
-                              'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Wnc4V7HEr9kcW5jpbxFVDGzzutKtos.png'),
+                              'https://images.pexels.com/photos/18866495/pexels-photo-18866495/free-photo-of-mujer-jugando-musica-sonriente.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -66,7 +70,7 @@ class _ArtistProfilePageState extends State<ArtistProfilePage> {
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.grey.withAlpha((0.9 * 255).toInt()),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.arrow_back),

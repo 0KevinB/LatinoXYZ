@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:arte_latino_xyz/models/post_model.dart';
 
 class CommentSection extends StatelessWidget {
@@ -43,7 +42,7 @@ class CommentSection extends StatelessWidget {
         if (comments.length > 2)
           TextButton(
             onPressed: () {
-              // TODO: Implement view all comments functionality
+              // Todo Implement view all comments functionality
             },
             child: Text('View all ${comments.length} comments'),
           ),
@@ -61,7 +60,7 @@ class CommentSection extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  // TODO: Implement post comment functionality
+                  // Todo implement post comment functionality
                 },
                 child: const Text('Post'),
               ),

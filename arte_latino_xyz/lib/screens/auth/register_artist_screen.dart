@@ -39,6 +39,7 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error al seleccionar la imagen'),
@@ -61,7 +62,7 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         return;
       }
 
-      // TODO: Implement verification request logic
+      // Toda Implement verification request logic
       Navigator.pop(context);
     }
   }
@@ -72,6 +73,9 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

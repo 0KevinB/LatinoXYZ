@@ -106,6 +106,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

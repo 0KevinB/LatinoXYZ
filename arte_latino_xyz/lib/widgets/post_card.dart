@@ -24,10 +24,10 @@ class PostCard extends StatefulWidget {
   });
 
   @override
-  _PostCardState createState() => _PostCardState();
+  PostCardState createState() => PostCardState();
 }
 
-class _PostCardState extends State<PostCard> {
+class PostCardState extends State<PostCard> {
   bool _isLiked = false;
   bool _showAllComments = false;
   final int _initialCommentCount = 2;

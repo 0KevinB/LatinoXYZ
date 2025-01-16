@@ -35,7 +35,7 @@ class StoryCircle extends StatelessWidget {
                 backgroundImage: NetworkImage(
                   imageUrl.isNotEmpty
                       ? imageUrl
-                      : 'https://via.placeholder.com/60',
+                      : 'https://images.pexels.com/photos/16517895/pexels-photo-16517895/free-photo-of-torre-de-la-catedral-de-milan.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                 ),
               ),
             ),

@@ -1,9 +1,10 @@
-import 'package:arte_latino_xyz/screens/explore_screen.dart';
+import 'package:arte_latino_xyz/firebase_options.dart';
+
 import 'package:arte_latino_xyz/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
+
 import 'screens/auth/login_screen.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'ArteLatinoXYZ',
       theme: ThemeData(
         primarySwatch: Colors.blue,

@@ -28,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
       } on FirebaseAuthException catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message ?? 'Error al iniciar sesión')),
         );
@@ -67,6 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -183,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // TODO: Implementar recuperación de contraseña
+                      /* Todo Implementar recuperación de contraseña*/
                     },
                     child: const Text('¿Olvidaste tu contraseña?'),
                   ),

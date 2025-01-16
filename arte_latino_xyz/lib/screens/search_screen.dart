@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  SearchPageState createState() => SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -112,7 +115,7 @@ class _SearchPageState extends State<SearchPage> {
 }
 
 class TrendingArtistCard extends StatelessWidget {
-  const TrendingArtistCard({Key? key}) : super(key: key);
+  const TrendingArtistCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +128,7 @@ class TrendingArtistCard extends StatelessWidget {
             shape: BoxShape.circle,
             image: DecorationImage(
               image: NetworkImage(
-                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Wnc4V7HEr9kcW5jpbxFVDGzzutKtos.png'),
+                  'https://images.pexels.com/photos/3764119/pexels-photo-3764119.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'),
               fit: BoxFit.cover,
             ),
           ),
@@ -150,7 +153,7 @@ class TrendingArtistCard extends StatelessWidget {
 }
 
 class TrendingProductCard extends StatelessWidget {
-  const TrendingProductCard({Key? key}) : super(key: key);
+  const TrendingProductCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +163,7 @@ class TrendingProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((0.1 * 255).toInt()),
             spreadRadius: 1,
             blurRadius: 5,
             offset: Offset(0, 2),
@@ -173,7 +176,7 @@ class TrendingProductCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.network(
-              'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Wnc4V7HEr9kcW5jpbxFVDGzzutKtos.png',
+              'https://images.pexels.com/photos/2663848/pexels-photo-2663848.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,

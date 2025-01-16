@@ -2,13 +2,13 @@ import 'package:arte_latino_xyz/screens/cart_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage({Key? key}) : super(key: key);
+  const ProductDetailPage({super.key});
 
   @override
-  _ProductDetailPageState createState() => _ProductDetailPageState();
+  ProductDetailPageState createState() => ProductDetailPageState();
 }
 
-class _ProductDetailPageState extends State<ProductDetailPage> {
+class ProductDetailPageState extends State<ProductDetailPage> {
   String selectedSize = 'M';
   Color selectedColor = Colors.black;
   int quantity = 1;
@@ -25,6 +25,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -54,7 +57,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           children: [
             // Product Image
             Image.network(
-              'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-anzo6lb6UaDmn4vaSoNUqOoFktAnGc.png',
+              'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
               width: double.infinity,
               height: 400,
               fit: BoxFit.cover,
@@ -203,19 +206,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                         );
                       },
-                      child: Text(
-                        'Añadir al carrito',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF2A2A8F),
                         padding: EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
+                      ),
+                      child: Text(
+                        'Añadir al carrito',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
                       ),
                     ),
                   ),

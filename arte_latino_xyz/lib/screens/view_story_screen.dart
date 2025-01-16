@@ -8,10 +8,10 @@ class ViewStoryScreen extends StatefulWidget {
   const ViewStoryScreen({super.key, required this.userId});
 
   @override
-  _ViewStoryScreenState createState() => _ViewStoryScreenState();
+  ViewStoryScreenState createState() => ViewStoryScreenState();
 }
 
-class _ViewStoryScreenState extends State<ViewStoryScreen> {
+class ViewStoryScreenState extends State<ViewStoryScreen> {
   final StoryController controller = StoryController();
   List<StoryItem> storyItems = [];
 
@@ -50,6 +50,9 @@ class _ViewStoryScreenState extends State<ViewStoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       body: storyItems.isEmpty
           ? const Center(child: CircularProgressIndicator())
