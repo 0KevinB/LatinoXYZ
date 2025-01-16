@@ -22,10 +22,10 @@ class FeedPost extends StatefulWidget {
   });
 
   @override
-  _FeedPostState createState() => _FeedPostState();
+  FeedPostState createState() => FeedPostState();
 }
 
-class _FeedPostState extends State<FeedPost> {
+class FeedPostState extends State<FeedPost> {
   late VideoPlayerController _controller;
   bool _isVideoInitialized = false;
 
@@ -33,7 +33,7 @@ class _FeedPostState extends State<FeedPost> {
   void initState() {
     super.initState();
     if (widget.isVideo) {
-      _controller = VideoPlayerController.network(widget.imageUrl)
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.imageUrl))
         ..initialize().then((_) {
           setState(() {
             _isVideoInitialized = true;

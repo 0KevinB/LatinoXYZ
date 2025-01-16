@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 class LikesPage extends StatelessWidget {
-  const LikesPage({Key? key}) : super(key: key);
+  const LikesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -37,7 +40,7 @@ class LikesPage extends StatelessWidget {
 }
 
 class LikedItemCard extends StatelessWidget {
-  const LikedItemCard({Key? key}) : super(key: key);
+  const LikedItemCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +50,7 @@ class LikedItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((0.1 * 255).toInt()),
             spreadRadius: 1,
             blurRadius: 5,
             offset: Offset(0, 2),
@@ -68,7 +71,7 @@ class LikedItemCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Wnc4V7HEr9kcW5jpbxFVDGzzutKtos.png',
+                  'https://images.pexels.com/photos/6517078/pexels-photo-6517078.jpeg?auto=compress&cs=tinysrgb&w=600',
                   width: 100,
                   height: 100,
                   fit: BoxFit.cover,
@@ -153,7 +156,7 @@ class LikedItemCard extends StatelessWidget {
 
 // Opcional: Widget para mostrar cuando no hay favoritos
 class EmptyLikesWidget extends StatelessWidget {
-  const EmptyLikesWidget({Key? key}) : super(key: key);
+  const EmptyLikesWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +190,6 @@ class EmptyLikesWidget extends StatelessWidget {
             onPressed: () {
               // Navegar a la página de exploración
             },
-            child: Text('Explorar productos'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue[900],
               padding: EdgeInsets.symmetric(
@@ -198,6 +200,7 @@ class EmptyLikesWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
+            child: Text('Explorar productos'),
           ),
         ],
       ),

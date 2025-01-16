@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({Key? key}) : super(key: key);
+  const PaymentPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _PaymentPageState createState() => _PaymentPageState();
 }
 
@@ -14,6 +15,9 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -259,6 +263,12 @@ class _PaymentPageState extends State<PaymentPage> {
                         );
                       }
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF2A2A8F),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Text(
@@ -268,12 +278,6 @@ class _PaymentPageState extends State<PaymentPage> {
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2A2A8F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                   ),

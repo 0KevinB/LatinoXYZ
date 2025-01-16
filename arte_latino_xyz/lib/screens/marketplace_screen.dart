@@ -2,10 +2,13 @@ import 'package:arte_latino_xyz/screens/product_screen.dart';
 import 'package:flutter/material.dart';
 
 class MarketplacePage extends StatelessWidget {
-  const MarketplacePage({Key? key}) : super(key: key);
+  const MarketplacePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -56,21 +59,21 @@ class MarketplacePage extends StatelessWidget {
                   'Pintura de castillo',
                   130,
                   180,
-                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-W2Sj6AWTxB4DNHD4Fo0zKcqG0Y8YqJ.png',
+                  'https://images.pexels.com/photos/1699020/pexels-photo-1699020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                 ),
                 _buildProductCard(
                   context,
                   'Hoodies personalizados de lana',
                   130,
                   180,
-                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-W2Sj6AWTxB4DNHD4Fo0zKcqG0Y8YqJ.png',
+                  'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                 ),
                 _buildProductCard(
                   context,
                   'Vestidos para festival',
                   130,
                   180,
-                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-W2Sj6AWTxB4DNHD4Fo0zKcqG0Y8YqJ.png',
+                  'https://images.pexels.com/photos/16977422/pexels-photo-16977422/free-photo-of-mujer-modelo-estampado-festival.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                 ),
               ],
             ),

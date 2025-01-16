@@ -2,10 +2,13 @@ import 'package:arte_latino_xyz/screens/payment_screen.dart';
 import 'package:flutter/material.dart';
 
 class CartPage extends StatelessWidget {
-  const CartPage({Key? key}) : super(key: key);
+  const CartPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -44,7 +47,7 @@ class CartPage extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ZToEP99uqIqWINvuVV6g39eXrEZQY8.png',
+                      'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
@@ -163,19 +166,19 @@ class CartPage extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Text(
-                    'Pagar',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
-                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF2A2A8F),
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
+                  ),
+                  child: Text(
+                    'Pagar',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                 ),
               ),

@@ -10,6 +10,7 @@ class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CreatePostScreenState createState() => _CreatePostScreenState();
 }
 
