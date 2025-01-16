@@ -72,10 +72,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       shape: BoxShape.circle,
                       color: Colors.grey.withAlpha((0.9 * 255).toInt()),
                     ),
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.pop(context),
-                    ),
                   ),
                 ),
               ],
