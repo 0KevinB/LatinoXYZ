@@ -1,11 +1,15 @@
+import 'package:arte_latino_xyz/models/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key});
+  final Product product;
+  final int quantity;
+
+  const PaymentPage({Key? key, required this.product, required this.quantity})
+      : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _PaymentPageState createState() => _PaymentPageState();
 }
 
@@ -13,11 +17,12 @@ class _PaymentPageState extends State<PaymentPage> {
   final _formKey = GlobalKey<FormState>();
   String _selectedPaymentMethod = 'credit_card';
 
+  double get subtotal => widget.product.price * widget.quantity;
+  double shippingCost = 9.90;
+  double get total => subtotal + shippingCost;
+
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -65,7 +70,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Subtotal'),
-                          Text('\$130.00'),
+                          Text('\$${subtotal.toStringAsFixed(2)}'),
                         ],
                       ),
                       SizedBox(height: 8),
@@ -73,7 +78,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Envío'),
-                          Text('\$9.90'),
+                          Text('\$${shippingCost.toStringAsFixed(2)}'),
                         ],
                       ),
                       Divider(height: 24),
@@ -85,7 +90,7 @@ class _PaymentPageState extends State<PaymentPage> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            '\$139.90',
+                            '\$${total.toStringAsFixed(2)}',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -272,7 +277,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Text(
-                        'Pagar \$139.90',
+                        'Pagar \$${total.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,

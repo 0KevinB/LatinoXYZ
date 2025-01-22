@@ -1,33 +1,21 @@
 import 'package:arte_latino_xyz/screens/cart_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:arte_latino_xyz/models/product_model.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage({super.key});
+  final Product product;
+
+  const ProductDetailPage({Key? key, required this.product}) : super(key: key);
 
   @override
   ProductDetailPageState createState() => ProductDetailPageState();
 }
 
 class ProductDetailPageState extends State<ProductDetailPage> {
-  String selectedSize = 'M';
-  Color selectedColor = Colors.black;
   int quantity = 1;
-
-  final List<String> sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  final List<Color> colors = [
-    Colors.black,
-    Colors.white,
-    Colors.purple[200]!,
-    Colors.blue[200]!,
-    Colors.amber[200]!,
-    Colors.pink[200]!,
-  ];
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -35,7 +23,7 @@ class ProductDetailPageState extends State<ProductDetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Hoodies Personalizados en lana',
+          widget.product.name,
           style: TextStyle(
             color: Colors.black,
             fontSize: 18,
@@ -57,7 +45,7 @@ class ProductDetailPageState extends State<ProductDetailPage> {
           children: [
             // Product Image
             Image.network(
-              'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+              widget.product.imageUrl,
               width: double.infinity,
               height: 400,
               fit: BoxFit.cover,
@@ -69,90 +57,41 @@ class ProductDetailPageState extends State<ProductDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '\$130',
+                    '\$${widget.product.price.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 24),
-
-                  // Size Selection
+                  SizedBox(height: 16),
                   Text(
-                    'Tamaño',
+                    'Artista: ${widget.product.authorName}',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: sizes.map((size) {
-                      return Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: InkWell(
-                          onTap: () => setState(() => selectedSize = size),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: selectedSize == size
-                                  ? Colors.blue[600]
-                                  : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                size,
-                                style: TextStyle(
-                                  color: selectedSize == size
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  SizedBox(height: 24),
-
-                  // Color Selection
+                  SizedBox(height: 8),
                   Text(
-                    'Color',
+                    'Categoría: ${widget.product.category}',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: colors.map((color) {
-                      return Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: InkWell(
-                          onTap: () => setState(() => selectedColor = color),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: color,
-                              border: Border.all(
-                                color: selectedColor == color
-                                    ? Colors.blue[600]!
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                  SizedBox(height: 24),
+
+                  // Size Selection (if applicable)
+                  if (widget.product.size.isNotEmpty) ...[
+                    Text(
+                      'Tamaño: ${widget.product.size}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                  ],
 
                   SizedBox(height: 24),
 
@@ -192,6 +131,25 @@ class ProductDetailPageState extends State<ProductDetailPage> {
                     ],
                   ),
 
+                  SizedBox(height: 24),
+
+                  // Description
+                  Text(
+                    'Descripción',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    widget.product.description,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+
                   SizedBox(height: 32),
 
                   // Add to Cart Button
@@ -202,7 +160,8 @@ class ProductDetailPageState extends State<ProductDetailPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CartPage(),
+                            builder: (context) => CartPage(
+                                product: widget.product, quantity: quantity),
                           ),
                         );
                       },

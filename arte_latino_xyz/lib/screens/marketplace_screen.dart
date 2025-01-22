@@ -1,14 +1,30 @@
+import 'package:arte_latino_xyz/models/product_model.dart';
+import 'package:arte_latino_xyz/screens/add_product_screen.dart';
 import 'package:arte_latino_xyz/screens/product_screen.dart';
+import 'package:arte_latino_xyz/services/product_service.dart';
 import 'package:flutter/material.dart';
 
-class MarketplacePage extends StatelessWidget {
-  const MarketplacePage({super.key});
+class MarketplacePage extends StatefulWidget {
+  const MarketplacePage({Key? key}) : super(key: key);
+
+  @override
+  _MarketplacePageState createState() => _MarketplacePageState();
+}
+
+class _MarketplacePageState extends State<MarketplacePage> {
+  final ProductService _productService = ProductService();
+  String _selectedCategory = 'Todas';
+  List<String> _categories = [
+    'Todas',
+    'Pintura',
+    'Escultura',
+    'Fotografía',
+    'Artesanía',
+    'Otro'
+  ];
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -43,54 +59,90 @@ class MarketplacePage extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: _categories.map((category) {
+                  return Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: _selectedCategory == category,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedCategory = selected ? category : 'Todas';
+                        });
+                      },
+                      backgroundColor: Colors.grey[100],
+                      selectedColor: Colors.black,
+                      labelStyle: TextStyle(
+                        color: _selectedCategory == category
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
-              padding: EdgeInsets.all(16),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: [
-                _buildProductCard(
-                  context,
-                  'Pintura de castillo',
-                  130,
-                  180,
-                  'https://images.pexels.com/photos/1699020/pexels-photo-1699020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                ),
-                _buildProductCard(
-                  context,
-                  'Hoodies personalizados de lana',
-                  130,
-                  180,
-                  'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                ),
-                _buildProductCard(
-                  context,
-                  'Vestidos para festival',
-                  130,
-                  180,
-                  'https://images.pexels.com/photos/16977422/pexels-photo-16977422/free-photo-of-mujer-modelo-estampado-festival.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                ),
-              ],
+            child: StreamBuilder<List<Product>>(
+              stream: _productService.streamProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No hay productos disponibles.'));
+                }
+                List<Product> products = snapshot.data!;
+                if (_selectedCategory != 'Todas') {
+                  products = products
+                      .where((product) => product.category == _selectedCategory)
+                      .toList();
+                }
+                return GridView.count(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.75,
+                  padding: EdgeInsets.all(16),
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  children: products
+                      .map((product) => _buildProductCard(context, product))
+                      .toList(),
+                );
+              },
             ),
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddProductScreen()),
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.black,
+      ),
     );
   }
 
-  Widget _buildProductCard(BuildContext context, String title, double price,
-      double originalPrice, String imageUrl) {
+  Widget _buildProductCard(BuildContext context, Product product) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailPage(),
+            builder: (context) => ProductDetailPage(product: product),
           ),
         );
       },
@@ -107,7 +159,7 @@ class MarketplacePage extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                   image: DecorationImage(
-                    image: NetworkImage(imageUrl),
+                    image: NetworkImage(product.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -119,7 +171,7 @@ class MarketplacePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    product.name,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -128,25 +180,12 @@ class MarketplacePage extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        '\$$price',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '\$$originalPrice',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
