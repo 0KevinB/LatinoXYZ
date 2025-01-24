@@ -1,4 +1,9 @@
+import 'package:arte_latino_xyz/models/artWorkModel.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
+import '../services/artwork_service.dart';
+import '../models/user_model.dart';
 
 class ArtistProfilePage extends StatefulWidget {
   const ArtistProfilePage({super.key});
@@ -9,12 +14,133 @@ class ArtistProfilePage extends StatefulWidget {
 
 class ArtistProfilePageState extends State<ArtistProfilePage> {
   bool isFollowing = false;
+  UserModel? artist;
+  List<ArtworkModel> artworks = [];
+
+  final AuthService _authService = AuthService();
+  final ArtworkService _artworkService = ArtworkService();
+
+  int _calculateAge(DateTime? birthDate) {
+    if (birthDate == null) return 0;
+    DateTime today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  void _fetchUserData() async {
+    User? currentUser = _authService.currentUser;
+    if (currentUser != null) {
+      UserModel? fetchedUser = await _authService.getUserData(currentUser.uid);
+
+      _artworkService
+          .getArtworksByArtist(currentUser.uid)
+          .listen((fetchedArtworks) {
+        if (mounted) {
+          setState(() {
+            artist = fetchedUser;
+            artworks = fetchedArtworks;
+          });
+        }
+      });
+    }
+  }
+
+  void _showArtworkDialog({ArtworkModel? artwork}) {
+    final nameController = TextEditingController(text: artwork?.name ?? '');
+    final descriptionController =
+        TextEditingController(text: artwork?.description ?? '');
+    final locationController =
+        TextEditingController(text: artwork?.location ?? '');
+    final toolsController =
+        TextEditingController(text: artwork?.tools.join(', ') ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(artwork == null ? 'Crear Obra' : 'Editar Obra'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Nombre de la Obra'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(labelText: 'Descripción'),
+              ),
+              TextField(
+                controller: locationController,
+                decoration: InputDecoration(labelText: 'Ubicación'),
+              ),
+              TextField(
+                controller: toolsController,
+                decoration: InputDecoration(
+                    labelText: 'Herramientas (separadas por coma)'),
+              ),
+              ElevatedButton(
+                child: Text('Seleccionar Imagen'),
+                onPressed: () {
+                  // Implementar selección de imagen
+                },
+              )
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newArtwork = ArtworkModel(
+                id: artwork?.id,
+                name: nameController.text,
+                photoUrl: '', // Pendiente implementación de imagen
+                publicationDate: artwork?.publicationDate ?? DateTime.now(),
+                description: descriptionController.text,
+                tools: toolsController.text
+                    .split(',')
+                    .map((e) => e.trim())
+                    .toList(),
+                location: locationController.text,
+                artistId: artist!.uid,
+              );
+
+              if (artwork == null) {
+                await _artworkService.createArtwork(newArtwork);
+              } else {
+                await _artworkService.updateArtwork(newArtwork);
+              }
+
+              Navigator.of(context).pop();
+            },
+            child: Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
+    if (artist == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -25,7 +151,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
               clipBehavior: Clip.none,
               children: [
                 // Cover Image with curved bottom
-
                 Container(
                   height: 300,
                   decoration: BoxDecoration(
@@ -55,7 +180,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                           width: 4,
                         ),
                         image: DecorationImage(
-                          image: NetworkImage(
+                          image: NetworkImage(artist?.photoUrl ??
                               'https://images.pexels.com/photos/18866495/pexels-photo-18866495/free-photo-of-mujer-jugando-musica-sonriente.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'),
                           fit: BoxFit.cover,
                         ),
@@ -90,7 +215,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Kristin Jones',
+                        artist?.name ?? 'sin nombre',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -171,7 +296,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Mi nombre es Kristin Jones, tengo 21 años de edad y soy una amante de la pintura y fotografía',
+                        artist?.artistDescription ?? 'Sin descripción ƪ(˘⌣˘)ʃ',
                         style: TextStyle(
                           color: Colors.grey[600],
                           height: 1.5,
@@ -195,7 +320,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text('Kris'),
+                            Text(artist?.artisticName ?? 'no especificado'),
                           ],
                         ),
                       ),
@@ -209,13 +334,31 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text('Ecuador'),
+                            Text(artist?.nationality ?? 'no especificado'),
                           ],
                         ),
                       ),
                     ],
                   ),
-
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Edad:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text('${_calculateAge(artist?.birthDate)} años'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 24),
 
                   // Portfolio Section
@@ -229,11 +372,46 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('Ver todo'),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.add_circle_outline),
+                            onPressed: () => _showArtworkDialog(),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text('Ver todo'),
+                          ),
+                        ],
                       ),
                     ],
+                  ),
+
+                  // Artwork Grid
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: artworks.length,
+                    itemBuilder: (context, index) {
+                      final artwork = artworks[index];
+                      return GestureDetector(
+                        onTap: () => _showArtworkDialog(artwork: artwork),
+                        child: Card(
+                          child: Column(
+                            children: [
+                              Image.network(artwork.photoUrl,
+                                  height: 100, fit: BoxFit.cover),
+                              Text(artwork.name),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

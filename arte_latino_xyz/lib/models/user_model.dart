@@ -12,6 +12,12 @@ class UserModel {
   final String authProvider;
   final UserRole role;
 
+  // New fields for artist profile
+  final String? artisticName;
+  final DateTime? birthDate;
+  final String? nationality;
+  final String? artistDescription;
+
   UserModel({
     required this.uid,
     required this.email,
@@ -21,6 +27,10 @@ class UserModel {
     required this.createdAt,
     required this.authProvider,
     this.role = UserRole.user,
+    this.artisticName,
+    this.birthDate,
+    this.nationality,
+    this.artistDescription,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +43,10 @@ class UserModel {
       'createdAt': createdAt.toIso8601String(),
       'authProvider': authProvider,
       'role': role.name,
+      'artisticName': artisticName,
+      'birthDate': birthDate?.toIso8601String(),
+      'nationality': nationality,
+      'artistDescription': artistDescription,
     };
   }
 
@@ -50,6 +64,11 @@ class UserModel {
         (e) => e.name == map['role'],
         orElse: () => UserRole.user,
       ),
+      artisticName: map['artisticName'],
+      birthDate:
+          map['birthDate'] != null ? DateTime.parse(map['birthDate']) : null,
+      nationality: map['nationality'],
+      artistDescription: map['artistDescription'],
     );
   }
 
@@ -62,6 +81,10 @@ class UserModel {
     DateTime? createdAt,
     String? authProvider,
     UserRole? role,
+    String? artisticName,
+    DateTime? birthDate,
+    String? nationality,
+    String? artistDescription,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -72,6 +95,10 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
       authProvider: authProvider ?? this.authProvider,
       role: role ?? this.role,
+      artisticName: artisticName ?? this.artisticName,
+      birthDate: birthDate ?? this.birthDate,
+      nationality: nationality ?? this.nationality,
+      artistDescription: artistDescription ?? this.artistDescription,
     );
   }
 }
