@@ -6,13 +6,13 @@ import 'package:arte_latino_xyz/models/product_model.dart';
 import 'package:uuid/uuid.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({Key? key}) : super(key: key);
+  const AddProductScreen({super.key});
 
   @override
-  _AddProductScreenState createState() => _AddProductScreenState();
+  AddProductScreenState createState() => AddProductScreenState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
+class AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final _productService = ProductService();
   final _nameController = TextEditingController();
@@ -24,8 +24,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _imageUrlController = TextEditingController();
 
   String _category = 'Pintura';
-  List<String> _colors = [];
-  List<String> _tags = [];
+  final List<String> _colors = [];
+  final List<String> _tags = [];
   File? _imageFile;
 
   final List<String> _categoryOptions = [
@@ -202,11 +202,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _pickImage,
-                  child: Text('Seleccionar imagen de la galería'),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.black,
                     backgroundColor: Colors.grey[200],
                   ),
+                  child: Text('Seleccionar imagen de la galería'),
                 ),
                 if (_imageFile != null)
                   Padding(
@@ -216,7 +216,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _submitForm,
-                  child: Text('Agregar Producto'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
@@ -224,6 +223,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     padding: EdgeInsets.symmetric(vertical: 16),
                   ),
+                  child: Text('Agregar Producto'),
                 ),
               ],
             ),
@@ -255,15 +255,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         await _productService.addProduct(newProduct, imageFile: _imageFile);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Producto agregado exitosamente')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Producto agregado exitosamente')),
+          );
 
-        Navigator.pop(context);
+          Navigator.pop(context);
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al agregar el producto: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al agregar el producto: $e')),
+          );
+        }
       }
     }
   }

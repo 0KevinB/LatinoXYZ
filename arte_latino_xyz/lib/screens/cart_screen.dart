@@ -6,8 +6,7 @@ class CartPage extends StatelessWidget {
   final Product product;
   final int quantity;
 
-  const CartPage({Key? key, required this.product, required this.quantity})
-      : super(key: key);
+  const CartPage({super.key, required this.product, required this.quantity});
 
   @override
   Widget build(BuildContext context) {

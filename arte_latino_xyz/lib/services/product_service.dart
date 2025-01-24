@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:logger/logger.dart';
 import '../models/product_model.dart';
 import 'auth_service.dart';
 
@@ -55,7 +56,8 @@ class ProductService {
 
       await _products.doc(newProduct.id).set(newProduct.toMap());
     } catch (e) {
-      print('Error adding product: $e');
+      final logger = Logger();
+      logger.e('Error adding product: $e');
       rethrow;
     }
   }
@@ -67,7 +69,8 @@ class ProductService {
           .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting products: $e');
+      final logger = Logger();
+      logger.e('Error getting products: $e');
       rethrow;
     }
   }
@@ -80,7 +83,8 @@ class ProductService {
       }
       return null;
     } catch (e) {
-      print('Error getting product: $e');
+      final logger = Logger();
+      logger.e('Error getting product: $e');
       rethrow;
     }
   }
@@ -89,7 +93,8 @@ class ProductService {
     try {
       await _products.doc(product.id).update(product.toMap());
     } catch (e) {
-      print('Error updating product: $e');
+      final logger = Logger();
+      logger.e('Error updating product: $e');
       rethrow;
     }
   }
@@ -98,7 +103,8 @@ class ProductService {
     try {
       await _products.doc(id).delete();
     } catch (e) {
-      print('Error deleting product: $e');
+      final logger = Logger();
+      logger.e('Error deleting product: $e');
       rethrow;
     }
   }

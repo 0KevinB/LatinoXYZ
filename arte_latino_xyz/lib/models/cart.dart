@@ -60,7 +60,7 @@ class Cart {
   });
 
   double get subtotal =>
-      items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+      items.fold(0, (acc, item) => acc + (item.price * item.quantity));
   double get shipping => items.isEmpty ? 0 : 9.90;
   double get total => subtotal + shipping;
 
