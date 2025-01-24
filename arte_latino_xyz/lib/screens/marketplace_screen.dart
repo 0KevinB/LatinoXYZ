@@ -5,7 +5,7 @@ import 'package:arte_latino_xyz/services/product_service.dart';
 import 'package:flutter/material.dart';
 
 class MarketplacePage extends StatefulWidget {
-  const MarketplacePage({Key? key}) : super(key: key);
+  const MarketplacePage({super.key});
 
   @override
   _MarketplacePageState createState() => _MarketplacePageState();
@@ -14,7 +14,7 @@ class MarketplacePage extends StatefulWidget {
 class _MarketplacePageState extends State<MarketplacePage> {
   final ProductService _productService = ProductService();
   String _selectedCategory = 'Todas';
-  List<String> _categories = [
+  final List<String> _categories = [
     'Todas',
     'Pintura',
     'Escultura',
@@ -130,8 +130,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
             MaterialPageRoute(builder: (context) => AddProductScreen()),
           );
         },
-        child: Icon(Icons.add),
         backgroundColor: Colors.black,
+        child: Icon(Icons.add),
       ),
     );
   }

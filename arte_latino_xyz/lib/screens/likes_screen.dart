@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
+import '../services/likes_service.dart';
+import '../services/auth_service.dart';
+import '../models/post_model.dart';
 
 class LikesPage extends StatelessWidget {
-  const LikesPage({super.key});
+  final LikesService _likesService = LikesService();
+  final AuthService _authService = AuthService();
+
+  LikesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
+    final currentUserId = _authService.currentUser?.uid;
+
+    if (currentUserId == null) {
+      return Scaffold(
+        body: Center(
+          child: Text('Please sign in to view your favorites'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -25,13 +38,40 @@ class LikesPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: ListView.builder(
-        padding: EdgeInsets.all(16),
-        itemCount: 10, // Número de items ejemplo
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: 16),
-            child: LikedItemCard(),
+      body: StreamBuilder<List<PostModel>>(
+        stream: _likesService.getLikedPostsStream(currentUserId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return EmptyLikesWidget();
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: LikedItemCard(
+                  post: posts[index],
+                  onLikePressed: () => _likesService.toggleLike(
+                    posts[index].id,
+                    currentUserId,
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -40,7 +80,14 @@ class LikesPage extends StatelessWidget {
 }
 
 class LikedItemCard extends StatelessWidget {
-  const LikedItemCard({super.key});
+  final PostModel post;
+  final VoidCallback onLikePressed;
+
+  const LikedItemCard({
+    super.key,
+    required this.post,
+    required this.onLikePressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +97,7 @@ class LikedItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withAlpha((0.1 * 255).toInt()),
+            color: Colors.grey.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 5,
             offset: Offset(0, 2),
@@ -59,7 +106,7 @@ class LikedItemCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // Navegar al detalle del producto
+          // Navigate to post detail
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -67,24 +114,31 @@ class LikedItemCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Imagen del producto
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  'https://images.pexels.com/photos/6517078/pexels-photo-6517078.jpeg?auto=compress&cs=tinysrgb&w=600',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
+              if (post.mediaUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    post.mediaUrl!,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey[200],
+                        child: Icon(Icons.error),
+                      );
+                    },
+                  ),
                 ),
-              ),
               SizedBox(width: 16),
-              // Información del producto
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hoodie personalizado de lana',
+                      post.text,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -94,14 +148,7 @@ class LikedItemCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Talla: M',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      'Color: Negro',
+                      'Por: ${post.username}',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 14,
@@ -111,35 +158,43 @@ class LikedItemCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '\$130.00',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
-                          ),
-                        ),
                         Row(
                           children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.shopping_cart_outlined,
+                            Icon(
+                              Icons.favorite,
+                              size: 16,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '${post.likes.length}',
+                              style: TextStyle(
+                                fontSize: 14,
                                 color: Colors.grey[600],
                               ),
-                              onPressed: () {
-                                // Añadir al carrito
-                              },
                             ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.favorite,
-                                color: Colors.red,
+                            SizedBox(width: 16),
+                            Icon(
+                              Icons.comment_outlined,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '${post.comments.length}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
                               ),
-                              onPressed: () {
-                                // Eliminar de favoritos
-                              },
                             ),
                           ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                          ),
+                          onPressed: onLikePressed,
                         ),
                       ],
                     ),
@@ -154,7 +209,6 @@ class LikedItemCard extends StatelessWidget {
   }
 }
 
-// Opcional: Widget para mostrar cuando no hay favoritos
 class EmptyLikesWidget extends StatelessWidget {
   const EmptyLikesWidget({super.key});
 
@@ -180,27 +234,28 @@ class EmptyLikesWidget extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'Explora productos y guárdalos en tus favoritos',
+            'Explora publicaciones y guárdalas en tus favoritos',
             style: TextStyle(
               color: Colors.grey[600],
             ),
+            textAlign: TextAlign.center,
           ),
           SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              // Navegar a la página de exploración
+              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue[900],
-              padding: EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            child: Text('Explorar productos'),
+            child: Text(
+              'Explorar publicaciones',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

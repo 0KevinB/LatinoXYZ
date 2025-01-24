@@ -5,7 +5,7 @@ import 'package:arte_latino_xyz/models/product_model.dart';
 class ProductDetailPage extends StatefulWidget {
   final Product product;
 
-  const ProductDetailPage({Key? key, required this.product}) : super(key: key);
+  const ProductDetailPage({super.key, required this.product});
 
   @override
   ProductDetailPageState createState() => ProductDetailPageState();

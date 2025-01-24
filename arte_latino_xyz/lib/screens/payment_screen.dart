@@ -6,8 +6,7 @@ class PaymentPage extends StatefulWidget {
   final Product product;
   final int quantity;
 
-  const PaymentPage({Key? key, required this.product, required this.quantity})
-      : super(key: key);
+  const PaymentPage({super.key, required this.product, required this.quantity});
 
   @override
   _PaymentPageState createState() => _PaymentPageState();

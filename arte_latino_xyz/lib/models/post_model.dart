@@ -22,12 +22,20 @@ class PostModel {
   });
 
   factory PostModel.fromMap(Map<String, dynamic> map, String id) {
+    // Handle null or missing timestamp
+    DateTime parseTimestamp(dynamic timestamp) {
+      if (timestamp == null) return DateTime.now();
+      if (timestamp is Timestamp) return timestamp.toDate();
+      if (timestamp is DateTime) return timestamp;
+      return DateTime.now();
+    }
+
     return PostModel(
       id: id,
       userId: map['userId'] ?? '',
       username: map['username'] ?? '',
       text: map['caption'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: parseTimestamp(map['createdAt']),
       comments: (map['comments'] as List<dynamic>? ?? [])
           .map((comment) => Comment.fromMap(comment as Map<String, dynamic>))
           .toList(),
@@ -63,11 +71,19 @@ class Comment {
   });
 
   factory Comment.fromMap(Map<String, dynamic> map) {
+    // Handle null or missing timestamp for comments
+    DateTime parseTimestamp(dynamic timestamp) {
+      if (timestamp == null) return DateTime.now();
+      if (timestamp is Timestamp) return timestamp.toDate();
+      if (timestamp is DateTime) return timestamp;
+      return DateTime.now();
+    }
+
     return Comment(
       userId: map['userId'] ?? '',
       username: map['username'] ?? '',
       text: map['text'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: parseTimestamp(map['createdAt']),
     );
   }
 

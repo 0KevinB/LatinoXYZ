@@ -19,7 +19,7 @@ class MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const ExploreScreen(),
-    const LikesPage(), // Replace with actual Favorites screen
+    LikesPage(), // Replace with actual Favorites screen
     const MarketplacePage(), // Replace with actual Cart screen
     const SearchPage(), // Replace with actual Search screen
     const ArtistProfilePage(), // Replace with actual Profile screen
