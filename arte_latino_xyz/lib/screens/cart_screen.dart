@@ -1,14 +1,21 @@
-import 'package:arte_latino_xyz/screens/payment_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:arte_latino_xyz/models/product_model.dart';
+import 'package:arte_latino_xyz/screens/payment_screen.dart';
 
 class CartPage extends StatelessWidget {
-  const CartPage({super.key});
+  final Product product;
+  final int quantity;
+
+  const CartPage({Key? key, required this.product, required this.quantity})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
+    // Calculate total price
+    double totalPrice = product.price * quantity;
+    double shippingCost = 9.90;
+    double grandTotal = totalPrice + shippingCost;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -33,7 +40,7 @@ class CartPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Número de orden: 4455332890',
+                'Número de orden: ${DateTime.now().millisecondsSinceEpoch}',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -47,7 +54,7 @@ class CartPage extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      'https://images.pexels.com/photos/1183266/pexels-photo-1183266.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                      product.imageUrl,
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
@@ -61,15 +68,17 @@ class CartPage extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Hoodie personalizado de lana',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                            Expanded(
+                              child: Text(
+                                product.name,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                             Text(
-                              '\$130',
+                              '\$${totalPrice.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -78,16 +87,13 @@ class CartPage extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: 8),
+                        if (product.size.isNotEmpty)
+                          Text(
+                            'Tamaño: ${product.size}',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
                         Text(
-                          'Tamaño: XL',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        Text(
-                          'Color: Rojo',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        Text(
-                          'Cantidad: 1',
+                          'Cantidad: $quantity',
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                       ],
@@ -96,34 +102,13 @@ class CartPage extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 24),
-              // Address Section
-              Text(
-                'Seleccionar dirección',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Zamora Huayco, Av. Río Marañón y C. Putumayo',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              ),
-              SizedBox(height: 24),
               // Price Breakdown
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Precio:'),
                   Text(
-                    '\$130.00',
+                    '\$${totalPrice.toStringAsFixed(2)}',
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -134,7 +119,7 @@ class CartPage extends StatelessWidget {
                 children: [
                   Text('Envío:'),
                   Text(
-                    '\$9.90',
+                    '\$${shippingCost.toStringAsFixed(2)}',
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -148,7 +133,7 @@ class CartPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    '\$139.90',
+                    '\$${grandTotal.toStringAsFixed(2)}',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -162,7 +147,8 @@ class CartPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PaymentPage(),
+                        builder: (context) =>
+                            PaymentPage(product: product, quantity: quantity),
                       ),
                     );
                   },
