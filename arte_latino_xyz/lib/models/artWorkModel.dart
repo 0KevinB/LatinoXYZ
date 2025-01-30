@@ -1,7 +1,7 @@
 class ArtworkModel {
   final String? id;
   final String name;
-  final String photoUrl;
+  String photoUrl;
   final DateTime publicationDate;
   final String description;
   final List<String> tools;
@@ -11,7 +11,7 @@ class ArtworkModel {
   ArtworkModel({
     this.id,
     required this.name,
-    required this.photoUrl,
+    this.photoUrl = '',
     required this.publicationDate,
     required this.description,
     required this.tools,

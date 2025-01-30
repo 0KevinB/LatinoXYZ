@@ -39,6 +39,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
 
   void _fetchUserData() async {
     User? currentUser = _authService.currentUser;
+    print("currentUser: $currentUser");
     if (currentUser != null) {
       UserModel? fetchedUser = await _authService.getUserData(currentUser.uid);
 
