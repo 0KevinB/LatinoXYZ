@@ -1,4 +1,8 @@
 import 'package:arte_latino_xyz/models/post_model.dart';
+import 'package:arte_latino_xyz/screens/admin/admin_validation_screen.dart';
+import 'package:arte_latino_xyz/screens/auth/register_artist_screen.dart';
+import 'package:arte_latino_xyz/screens/user/artist/profile_screen.dart';
+import 'package:arte_latino_xyz/screens/user/view_story_screen.dart';
 import 'package:arte_latino_xyz/widgets/post_card.dart';
 import 'package:arte_latino_xyz/widgets/story_circle.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +47,22 @@ class ExploreScreen extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ArtistVerificationScreen()),
+                  );
+                },
+                child: const Text(
+                  'a',
+                  style: TextStyle(
+                    color: Color(0xFF201658),
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ],
           ),
@@ -109,10 +129,6 @@ class ExploreScreen extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {},
-                                child: const Text('Ver más'),
-                              ),
                             ],
                           ),
                         ),
@@ -160,7 +176,20 @@ class ExploreScreen extends StatelessWidget {
                                           story['mediaUrl'] as String? ?? '',
                                       username: story['username'] as String? ??
                                           'Usuario',
-                                      onTap: () {},
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ViewStoryScreen(
+                                              userId: 'user123',
+                                              username: 'John Doe',
+                                              profileImageUrl:
+                                                  'https://example.com/profile.jpg',
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   );
                                 },

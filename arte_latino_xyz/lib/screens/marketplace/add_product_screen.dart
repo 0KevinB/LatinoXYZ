@@ -95,7 +95,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: const Text(
-        'Agregar Obra',
+        'Agregar Producto',
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 24,
@@ -139,7 +139,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   [
                     _buildTextField(
                       _nameController,
-                      'Nombre de la obra',
+                      'Nombre del producto',
                       true,
                       icon: Icons.art_track,
                     ),
@@ -156,7 +156,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildFormSection(
-                  'Detalles de la obra',
+                  'Detalles del producto',
                   [
                     _buildTextField(
                       _descriptionController,
@@ -188,7 +188,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildFormSection(
-                  'Imagen de la obra',
+                  'Imagen del producto',
                   [_buildImageSection()],
                 ),
                 const SizedBox(height: 32),
@@ -405,7 +405,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         elevation: 0,
       ),
       child: const Text(
-        'Publicar Obra',
+        'Subir producto',
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -459,7 +459,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Obra publicada exitosamente'),
+                Text('Producto publicado exitosamente'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -482,7 +482,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 8),
-                Text('Error al publicar la obra: $e'),
+                Text('Error al publicar el producto: $e'),
               ],
             ),
             backgroundColor: Colors.red,
