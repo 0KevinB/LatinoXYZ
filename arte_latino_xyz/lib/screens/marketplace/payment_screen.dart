@@ -1,4 +1,5 @@
 import 'package:arte_latino_xyz/models/product_model.dart';
+import 'package:arte_latino_xyz/screens/marketplace/marketplace_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -258,13 +259,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // Procesar el pago
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Procesando pago...'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        _processPayment(context);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -291,6 +286,64 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
         ),
       ),
+    );
+  }
+
+  void _processPayment(BuildContext context) {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
+    // Simulate payment processing
+    Future.delayed(Duration(seconds: 2), () {
+      Navigator.of(context).pop(); // Dismiss loading indicator
+      _showPaymentSuccessDialog(context);
+    });
+  }
+
+  void _showPaymentSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 80),
+              SizedBox(height: 20),
+              Text(
+                '¡Pago Exitoso!',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Tu pedido ha sido procesado correctamente.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MarketplacePage()),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

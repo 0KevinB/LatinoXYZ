@@ -86,53 +86,114 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Agregar Producto'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
-        ),
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Agregar Producto'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
+      appBar: _buildAppBar(),
+      body: _isLoading ? _buildLoadingView() : _buildFormView(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        'Agregar Obra',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 24,
+        ),
       ),
-      body: SingleChildScrollView(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  Widget _buildLoadingView() {
+    return Container(
+      decoration: _buildBackgroundDecoration(),
+      child: const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormView() {
+    return Container(
+      decoration: _buildBackgroundDecoration(),
+      child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTextField(_nameController, 'Nombre de la obra', true),
-                _buildTextField(_priceController, 'Precio', true,
-                    keyboardType: TextInputType.number),
-                _buildDropdownField(),
-                _buildTextField(_descriptionController, 'Descripción', true,
-                    maxLines: 3),
-                _buildTextField(_mediumController, 'Técnica o material', true),
-                _buildTextField(_sizeController, 'Tamaño', true),
-                _buildTextField(_yearController, 'Año de creación', true,
-                    keyboardType: TextInputType.number),
-                _buildTextField(
-                    _imageUrlController, 'URL de la imagen (opcional)', false),
-                _buildImagePickerButton(),
-                if (_imageFile != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text('Imagen seleccionada: ${_imageFile!.path}'),
-                  ),
-                SizedBox(height: 16),
+                _buildFormSection(
+                  'Información básica',
+                  [
+                    _buildTextField(
+                      _nameController,
+                      'Nombre de la obra',
+                      true,
+                      icon: Icons.art_track,
+                    ),
+                    _buildTextField(
+                      _priceController,
+                      'Precio',
+                      true,
+                      keyboardType: TextInputType.number,
+                      prefix: '\$',
+                      icon: Icons.attach_money,
+                    ),
+                    _buildDropdownField(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildFormSection(
+                  'Detalles de la obra',
+                  [
+                    _buildTextField(
+                      _descriptionController,
+                      'Descripción',
+                      true,
+                      maxLines: 3,
+                      icon: Icons.description,
+                    ),
+                    _buildTextField(
+                      _mediumController,
+                      'Técnica o material',
+                      true,
+                      icon: Icons.brush,
+                    ),
+                    _buildTextField(
+                      _sizeController,
+                      'Tamaño',
+                      true,
+                      icon: Icons.straighten,
+                    ),
+                    _buildTextField(
+                      _yearController,
+                      'Año de creación',
+                      true,
+                      keyboardType: TextInputType.number,
+                      icon: Icons.calendar_today,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildFormSection(
+                  'Imagen de la obra',
+                  [_buildImageSection()],
+                ),
+                const SizedBox(height: 32),
                 _buildSubmitButton(),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -141,19 +202,85 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
+  BoxDecoration _buildBackgroundDecoration() {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.white, Colors.grey.shade50],
+      ),
+    );
+  }
+
+  Widget _buildFormSection(String title, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   Widget _buildTextField(
-      TextEditingController controller, String label, bool isRequired,
-      {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
+    TextEditingController controller,
+    String label,
+    bool isRequired, {
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    String? prefix,
+    IconData? icon,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          prefixText: prefix,
+          prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.black, width: 2),
+          ),
+          contentPadding: const EdgeInsets.all(16),
+          labelStyle: TextStyle(color: Colors.grey.shade600),
         ),
         keyboardType: keyboardType,
         maxLines: maxLines,
+        style: const TextStyle(fontSize: 16),
         validator: (value) {
           if (isRequired && (value == null || value.isEmpty)) {
             return 'Por favor ingrese $label';
@@ -176,7 +303,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
         value: _category,
         decoration: InputDecoration(
           labelText: 'Categoría',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          prefixIcon: const Icon(Icons.category, color: Colors.grey),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.black, width: 2),
+          ),
         ),
         items: _categoryOptions.map((String category) {
           return DropdownMenuItem(
@@ -199,14 +340,55 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  Widget _buildImagePickerButton() {
-    return ElevatedButton(
-      onPressed: _pickImage,
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.grey[200],
-      ),
-      child: Text('Seleccionar imagen de la galería'),
+  Widget _buildImageSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildTextField(
+          _imageUrlController,
+          'URL de la imagen (opcional)',
+          false,
+          icon: Icons.link,
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: _pickImage,
+          icon: const Icon(Icons.photo_library),
+          label: const Text('Seleccionar imagen de la galería'),
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.black,
+            backgroundColor: Colors.grey.shade100,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+          ),
+        ),
+        if (_imageFile != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Imagen seleccionada: ${_imageFile!.path.split('/').last}',
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -214,24 +396,47 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return ElevatedButton(
       onPressed: _submitForm,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: Color(0xFF201658),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 0,
       ),
-      child: Text('Agregar Producto'),
+      child: const Text(
+        'Publicar Obra',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   void _submitForm() async {
     if (_formKey.currentState!.validate() && _category != null) {
       try {
+        // Mostrar indicador de carga
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF201658)),
+              ),
+            );
+          },
+        );
+
         final newProduct = Product(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           name: _nameController.text,
           authorId: '',
           authorName: '',
           price: double.parse(_priceController.text),
-          category: _category!, // Guardamos la categoría original
+          category: _category!,
           colors: _colors,
           description: _descriptionController.text,
           imageUrl: _imageUrlController.text,
@@ -244,13 +449,48 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         await _productService.addProduct(newProduct, imageFile: _imageFile);
 
+        // Cerrar el indicador de carga
+        Navigator.of(context).pop();
+
+        // Mostrar mensaje de éxito
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Producto agregado exitosamente')),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Obra publicada exitosamente'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
+
         Navigator.pop(context);
       } catch (e) {
+        // Cerrar el indicador de carga
+        Navigator.of(context).pop();
+
+        // Mostrar mensaje de error
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al agregar el producto: $e')),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Error al publicar la obra: $e'),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
       }
     }
