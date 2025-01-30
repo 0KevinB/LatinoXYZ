@@ -31,7 +31,7 @@ class UserModel {
   final String? name;
   final String? phone;
   final String? photoUrl;
-  final DateTime createdAt;
+  final DateTime? createdAt;
   final String authProvider;
   final UserRole role;
 
@@ -49,7 +49,7 @@ class UserModel {
     this.name,
     this.phone,
     this.photoUrl,
-    required this.createdAt,
+    this.createdAt,
     required this.authProvider,
     this.role = UserRole.user,
     this.artisticName,
@@ -67,7 +67,7 @@ class UserModel {
       'name': name,
       'phone': phone,
       'photoUrl': photoUrl,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
       'authProvider': authProvider,
       'role': role.name,
       'artisticName': artisticName,
@@ -86,16 +86,14 @@ class UserModel {
       name: map['name'],
       phone: map['phone'],
       photoUrl: map['photoUrl'],
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: _parseDateTime(map['createdAt']),
       authProvider: map['authProvider'] ?? 'email',
       role: UserRole.values.firstWhere(
         (e) => e.name == map['role'],
         orElse: () => UserRole.user,
       ),
       artisticName: map['artisticName'],
-      birthDate: map['birthDate'] != null
-          ? (map['birthDate'] as Timestamp).toDate()
-          : null,
+      birthDate: _parseDateTime(map['birthDate']),
       nationality: map['nationality'],
       artistDescription: map['artistDescription'],
       artistValidationStatus: ArtistValidationStatus.values.firstWhere(
@@ -107,5 +105,18 @@ class UserModel {
               .toList() ??
           [],
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null;
   }
 }
