@@ -1,9 +1,9 @@
 import 'package:arte_latino_xyz/models/artWorkModel.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
-import '../services/artwork_service.dart';
-import '../models/user_model.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/artwork_service.dart';
+import '../../../models/user_model.dart';
 
 class ArtistProfilePage extends StatefulWidget {
   const ArtistProfilePage({super.key});

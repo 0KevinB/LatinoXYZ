@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/likes_service.dart';
-import '../services/auth_service.dart';
-import '../models/post_model.dart';
+import '../../services/likes_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/post_model.dart';
 
 class LikesPage extends StatelessWidget {
   final LikesService _likesService = LikesService();

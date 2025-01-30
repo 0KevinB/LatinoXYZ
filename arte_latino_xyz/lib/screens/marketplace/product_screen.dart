@@ -1,4 +1,4 @@
-import 'package:arte_latino_xyz/screens/cart_screen.dart';
+import 'package:arte_latino_xyz/screens/marketplace/cart_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:arte_latino_xyz/models/product_model.dart';
 

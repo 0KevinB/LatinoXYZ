@@ -1,10 +1,10 @@
-import 'package:arte_latino_xyz/screens/likes_screen.dart';
-import 'package:arte_latino_xyz/screens/marketplace_screen.dart';
-import 'package:arte_latino_xyz/screens/profile_screen.dart';
-import 'package:arte_latino_xyz/screens/search_screen.dart';
+import 'package:arte_latino_xyz/screens/user/likes_screen.dart';
+import 'package:arte_latino_xyz/screens/marketplace/marketplace_screen.dart';
+import 'package:arte_latino_xyz/screens/user/artist/profile_screen.dart';
+import 'package:arte_latino_xyz/screens/user/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:arte_latino_xyz/widgets/custom_botton_navigation.dart';
-import 'package:arte_latino_xyz/screens/explore_screen.dart';
+import 'package:arte_latino_xyz/screens/user/explore_screen.dart';
 // Import other screen widgets as needed
 
 class MainScreen extends StatefulWidget {

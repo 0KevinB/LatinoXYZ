@@ -1,4 +1,4 @@
-import 'package:arte_latino_xyz/screens/view_story_screen.dart';
+import 'package:arte_latino_xyz/screens/user/view_story_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 

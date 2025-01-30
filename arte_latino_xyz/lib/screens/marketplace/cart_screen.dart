@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:arte_latino_xyz/models/product_model.dart';
-import 'package:arte_latino_xyz/screens/payment_screen.dart';
+import 'package:arte_latino_xyz/screens/marketplace/payment_screen.dart';
 
 class CartPage extends StatelessWidget {
   final Product product;

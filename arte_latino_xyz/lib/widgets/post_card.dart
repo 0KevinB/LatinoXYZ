@@ -1,3 +1,4 @@
+import 'package:arte_latino_xyz/models/post_model.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,60 +105,174 @@ class PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    return Container(
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(widget.userPhotoUrl),
-            ),
-            title: Text(widget.username),
-          ),
-          Image.network(
-            widget.imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-          ),
+          // Header
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        _isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: _isLiked ? Colors.red : null,
-                      ),
-                      onPressed: _toggleLike,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.comment_outlined),
-                      onPressed: () {
-                        // Scroll to comment input field
-                        Scrollable.ensureVisible(context,
-                            duration: const Duration(milliseconds: 300));
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.share_outlined),
-                      onPressed: _sharePost,
-                    ),
-                    const Spacer(),
-                    Text('${widget.likes.length} likes'),
-                  ],
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(widget.userPhotoUrl),
                 ),
+                const SizedBox(width: 8),
                 Text(
-                  widget.caption,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  widget.username,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                _buildCommentSection(),
-                const SizedBox(height: 8),
-                _buildCommentInput(),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  iconSize: 20,
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+          // Image
+          AspectRatio(
+            aspectRatio: 1, // Instagram usa relación 1:1
+            child: Image.network(
+              widget.imageUrl,
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: _isLiked ? Colors.red : null,
+                    size: 24,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: _toggleLike,
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  icon: const Icon(
+                    Icons.mode_comment_outlined,
+                    size: 24,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {},
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  icon: const Icon(
+                    Icons.send_outlined,
+                    size: 24,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: _sharePost,
+                ),
+              ],
+            ),
+          ),
+          // Likes
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              '${widget.likes.length} Me gusta',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+          // Caption
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: '${widget.username} ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: widget.caption),
+                ],
+              ),
+            ),
+          ),
+          // Comments
+          if (widget.comments.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.comments.length > 2 && !_showAllComments)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAllComments = true;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Ver los ${widget.comments.length} comentarios',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ..._buildComments(),
+                ],
+              ),
+            ),
+          // Comment Input
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    style: const TextStyle(fontSize: 14),
+                    decoration: const InputDecoration(
+                      hintText: 'Añade un comentario...',
+                      hintStyle: TextStyle(fontSize: 14),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _addComment,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Publicar',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -166,91 +281,29 @@ class PostCardState extends State<PostCard> {
     );
   }
 
-  Widget _buildCommentSection() {
-    final displayedComments = _showAllComments
+  List<Widget> _buildComments() {
+    final commentsToShow = _showAllComments
         ? widget.comments
         : widget.comments.take(_initialCommentCount).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...displayedComments.map((comment) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: RichText(
-                text: TextSpan(
-                  style: DefaultTextStyle.of(context).style,
-                  children: [
-                    TextSpan(
-                      text: '${comment.username} ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: comment.text),
-                  ],
-                ),
+    return commentsToShow
+        .map(
+          (comment) => Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: '${comment.username} ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: comment.text),
+                ],
               ),
-            )),
-        if (widget.comments.length > _initialCommentCount)
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _showAllComments = !_showAllComments;
-              });
-            },
-            child: Text(_showAllComments ? 'Ocultar' : 'Ver más comentarios'),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildCommentInput() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _commentController,
-            decoration: const InputDecoration(
-              hintText: 'Añade un comentario...',
-              border: InputBorder.none,
             ),
           ),
-        ),
-        TextButton(
-          onPressed: _addComment,
-          child: const Text('Publicar'),
-        ),
-      ],
-    );
-  }
-}
-
-class Comment {
-  final String userId;
-  final String username;
-  final String text;
-  final DateTime createdAt;
-
-  Comment({
-    required this.userId,
-    required this.username,
-    required this.text,
-    required this.createdAt,
-  });
-
-  factory Comment.fromMap(Map<String, dynamic> map) {
-    return Comment(
-      userId: map['userId'] ?? '',
-      username: map['username'] ?? '',
-      text: map['text'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'userId': userId,
-      'username': username,
-      'text': text,
-      'createdAt': Timestamp.fromDate(createdAt),
-    };
+        )
+        .toList();
   }
 }

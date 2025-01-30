@@ -1,10 +1,11 @@
+import 'package:arte_latino_xyz/models/post_model.dart';
 import 'package:arte_latino_xyz/widgets/post_card.dart';
 import 'package:arte_latino_xyz/widgets/story_circle.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:arte_latino_xyz/screens/create_post_screen.dart';
-import 'package:arte_latino_xyz/screens/create_story_screen.dart';
+import 'package:arte_latino_xyz/screens/user/artist/create_post_screen.dart';
+import 'package:arte_latino_xyz/screens/user/artist/create_story_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -81,7 +82,6 @@ class ExploreScreen extends StatelessWidget {
                     ),
                   ),
                   centerTitle: true,
-                  backgroundColor: Colors.white,
                   iconTheme: const IconThemeData(color: Colors.black),
                   actions: [
                     IconButton(
@@ -118,7 +118,7 @@ class ExploreScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
-                          height: 100,
+                          height: 90,
                           child: StreamBuilder<QuerySnapshot>(
                             stream: FirebaseFirestore.instance
                                 .collection('stories')
