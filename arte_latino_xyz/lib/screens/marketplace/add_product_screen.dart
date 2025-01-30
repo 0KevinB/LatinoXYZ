@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:arte_latino_xyz/services/product_service.dart';
+import 'package:arte_latino_xyz/services/art_type_service.dart';
 import 'package:arte_latino_xyz/models/product_model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,6 +16,7 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final _productService = ProductService();
+  final _artTypeService = ArtTypeService();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -23,18 +25,53 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _yearController = TextEditingController();
   final _imageUrlController = TextEditingController();
 
-  String _category = 'Pintura';
+  String? _category;
   final List<String> _colors = [];
   final List<String> _tags = [];
   File? _imageFile;
+  List<String> _categoryOptions = [];
+  bool _isLoading = true;
 
-  final List<String> _categoryOptions = [
-    'Pintura',
-    'Escultura',
-    'Fotografía',
-    'Artesanía',
-    'Otro'
-  ];
+  // Mapa para convertir los nombres de categorías
+  final Map<String, String> categoryNames = {
+    'arteDigital': 'Arte Digital',
+    'arteUrbano': 'Arte Urbano',
+    'artesAplicadasYDiseño': 'Artes Aplicadas y Diseño',
+    'artesLiterarias': 'Artes Literarias',
+    'artesMusicales': 'Artes Musicales',
+    'cineYVideoarte': 'Cine y Videoarte',
+    'danza': 'Danza',
+    'dibujo': 'Dibujo',
+    'escultura': 'Escultura',
+    'fotografia': 'Fotografía',
+    'grabado': 'Grabado',
+    'instalacionesArtisticas': 'Instalaciones Artísticas',
+    'performance': 'Performance',
+    'pintura': 'Pintura',
+    'teatro': 'Teatro',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final artTypes = await _artTypeService.getArtTypes();
+      setState(() {
+        _categoryOptions = artTypes.map((type) => type.name).toList();
+        _category = _categoryOptions.isNotEmpty ? _categoryOptions[0] : null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading categories: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -49,6 +86,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Agregar Producto'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Agregar Producto'),
@@ -132,12 +181,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
         items: _categoryOptions.map((String category) {
           return DropdownMenuItem(
             value: category,
-            child: Text(category),
+            child: Text(categoryNames[category] ?? category),
           );
         }).toList(),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Por favor seleccione una categoría';
+          }
+          return null;
+        },
         onChanged: (String? newValue) {
           setState(() {
-            _category = newValue!;
+            _category = newValue;
           });
         },
       ),
@@ -168,7 +223,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _category != null) {
       try {
         final newProduct = Product(
           id: Uuid().v4(),
@@ -176,7 +231,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           authorId: '',
           authorName: '',
           price: double.parse(_priceController.text),
-          category: _category,
+          category: _category!, // Guardamos la categoría original
           colors: _colors,
           description: _descriptionController.text,
           imageUrl: _imageUrlController.text,
