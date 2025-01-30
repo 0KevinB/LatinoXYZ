@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../services/art_type_service.dart';
+import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
 
 class ArtistVerificationScreen extends StatefulWidget {
-  const ArtistVerificationScreen({super.key});
+  const ArtistVerificationScreen({Key? key}) : super(key: key);
+
   @override
-  State<ArtistVerificationScreen> createState() =>
+  _ArtistVerificationScreenState createState() =>
       _ArtistVerificationScreenState();
 }
 
@@ -14,17 +18,28 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
   final _nameController = TextEditingController();
   final _artistNameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  String? _selectedArtType;
-  final List<String> _artTypes = [
-    'Pintura',
-    'Escultura',
-    'Fotografía',
-    'Arte digital',
-    'Otro'
-  ];
-
+  final _nationalityController = TextEditingController();
+  DateTime? _birthDate;
+  ArtType? _selectedArtType;
+  List<ArtType> _artTypes = [];
   final List<File?> _selectedImages = List.filled(3, null);
   final _picker = ImagePicker();
+  final _artTypeService = ArtTypeService();
+  final _authService = AuthService();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArtTypes();
+  }
+
+  Future<void> _loadArtTypes() async {
+    final artTypes = await _artTypeService.getArtTypes();
+    setState(() {
+      _artTypes = artTypes;
+    });
+  }
 
   Future<void> _pickImage(int index) async {
     try {
@@ -39,7 +54,6 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         });
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error al seleccionar la imagen'),
@@ -49,9 +63,22 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
     }
   }
 
-  void _requestVerification() {
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _birthDate) {
+      setState(() {
+        _birthDate = picked;
+      });
+    }
+  }
+
+  Future<void> _requestVerification() async {
     if (_formKey.currentState!.validate()) {
-      // Verificar que se hayan seleccionado las 3 imágenes
       if (_selectedImages.where((image) => image != null).length < 3) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -62,193 +89,130 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         return;
       }
 
-      // Toda Implement verification request logic
-      Navigator.pop(context);
-    }
-  }
+      setState(() => _isLoading = true);
 
-  void _skipVerification() {
-    Navigator.pop(context);
+      try {
+        final user = _authService.currentUser;
+        if (user != null) {
+          await _authService.requestArtistValidation(
+            user.uid,
+            artisticName: _artistNameController.text,
+            birthDate: _birthDate!,
+            nationality: _nationalityController.text,
+            artistDescription: _descriptionController.text,
+            artTypes: [_selectedArtType!],
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Solicitud de verificación enviada')),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: _skipVerification,
-            child: const Text(
-              'Omitir por ahora',
-              style: TextStyle(color: Colors.blue),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '¿Eres artista?',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Si eres artista, puedes solicitar una verificación siguiendo los pasos a continuación.\nNo te preocupes, podrás solicitar la verificación cuando gustes.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Nombres y Apellidos',
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  validator: (value) =>
-                      value?.isEmpty == true ? 'Este campo es requerido' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _artistNameController,
-                  decoration: InputDecoration(
-                    hintText: 'Nombre artístico (opcional)',
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedArtType,
-                  decoration: InputDecoration(
-                    hintText: 'Tipo de arte',
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: _artTypes
-                      .map((type) => DropdownMenuItem(
-                            value: type,
-                            child: Text(type),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedArtType = value);
-                  },
-                  validator: (value) => value == null
-                      ? 'Por favor selecciona un tipo de arte'
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Por favor, adjunta 3 obras o arte de tu propiedad',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(
-                    3,
-                    (index) => GestureDetector(
-                      onTap: () => _pickImage(index),
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.blue.shade200),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: _selectedImages[index] != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _selectedImages[index]!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.add_photo_alternate_outlined,
-                                color: Colors.blue,
-                                size: 32,
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Por último, damos una breve descripción de ti',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Ingresa aquí tu descripción...',
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  validator: (value) =>
-                      value?.isEmpty == true ? 'Este campo es requerido' : null,
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _requestVerification,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1a237e),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Solicitar verificación',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      appBar: AppBar(title: Text('Verificación de Artista')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Nombre completo'),
+                validator: (value) =>
+                    value?.isEmpty == true ? 'Campo requerido' : null,
+              ),
+              TextFormField(
+                controller: _artistNameController,
+                decoration: InputDecoration(labelText: 'Nombre artístico'),
+                validator: (value) =>
+                    value?.isEmpty == true ? 'Campo requerido' : null,
+              ),
+              TextFormField(
+                controller: _nationalityController,
+                decoration: InputDecoration(labelText: 'Nacionalidad'),
+                validator: (value) =>
+                    value?.isEmpty == true ? 'Campo requerido' : null,
+              ),
+              ListTile(
+                title: Text(_birthDate == null
+                    ? 'Seleccionar fecha de nacimiento'
+                    : 'Fecha de nacimiento: ${_birthDate!.toLocal().toString().split(' ')[0]}'),
+                trailing: Icon(Icons.calendar_today),
+                onTap: () => _selectDate(context),
+              ),
+              DropdownButtonFormField<ArtType>(
+                value: _selectedArtType,
+                items: _artTypes.map((ArtType artType) {
+                  return DropdownMenuItem<ArtType>(
+                    value: artType,
+                    child: Text(artType.name),
+                  );
+                }).toList(),
+                onChanged: (ArtType? newValue) {
+                  setState(() {
+                    _selectedArtType = newValue;
+                  });
+                },
+                decoration: InputDecoration(labelText: 'Tipo de arte'),
+                validator: (value) => value == null
+                    ? 'Por favor selecciona un tipo de arte'
+                    : null,
+              ),
+              SizedBox(height: 16),
+              Text('Selecciona 3 imágenes de tus obras:'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(3, (index) => _buildImagePicker(index)),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Descripción artística'),
+                maxLines: 3,
+                validator: (value) =>
+                    value?.isEmpty == true ? 'Campo requerido' : null,
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _requestVerification,
+                child: _isLoading
+                    ? CircularProgressIndicator()
+                    : Text('Solicitar verificación'),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePicker(int index) {
+    return GestureDetector(
+      onTap: () => _pickImage(index),
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: _selectedImages[index] != null
+            ? Image.file(_selectedImages[index]!, fit: BoxFit.cover)
+            : Icon(Icons.add_photo_alternate, size: 40),
       ),
     );
   }

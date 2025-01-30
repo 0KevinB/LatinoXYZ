@@ -1,4 +1,3 @@
-// lib/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,15 +8,12 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Referencia a la colección de usuarios
   CollectionReference get _users => _firestore.collection('users');
 
-  // Crear usuario en Firestore
   Future<void> _createUserInFirestore(UserModel user) async {
     await _users.doc(user.uid).set(user.toMap());
   }
 
-  // Obtener usuario de Firestore
   Future<UserModel?> getUserData(String uid) async {
     final doc = await _users.doc(uid).get();
     if (doc.exists) {
@@ -26,7 +22,6 @@ class AuthService {
     return null;
   }
 
-  // Registro con email y contraseña
   Future<UserCredential> registerWithEmail({
     required String email,
     required String password,
@@ -50,8 +45,6 @@ class AuthService {
         );
 
         await _createUserInFirestore(user);
-
-        // Actualizar el displayName en Firebase Auth
         await userCredential.user!.updateDisplayName(name);
       }
 
@@ -61,7 +54,6 @@ class AuthService {
     }
   }
 
-  // Inicio de sesión con Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -77,7 +69,6 @@ class AuthService {
 
       final userCredential = await _auth.signInWithCredential(credential);
 
-      // Si es un nuevo usuario, guardar en Firestore
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         final user = UserModel(
           uid: userCredential.user!.uid,
@@ -97,12 +88,42 @@ class AuthService {
     }
   }
 
-  // Actualizar datos del usuario
   Future<void> updateUserData(String uid, Map<String, dynamic> data) async {
     await _users.doc(uid).update(data);
   }
 
-  // Cerrar sesión
+  Future<void> requestArtistValidation(
+    String uid, {
+    required String artisticName,
+    required DateTime birthDate,
+    required String nationality,
+    required String artistDescription,
+    required List<ArtType> artTypes,
+  }) async {
+    final userData = {
+      'artisticName': artisticName,
+      'birthDate': birthDate.toIso8601String(),
+      'nationality': nationality,
+      'artistDescription': artistDescription,
+      'artTypes': artTypes.map((artType) => artType.toMap()).toList(),
+      'artistValidationStatus': ArtistValidationStatus.pending.name,
+    };
+
+    await updateUserData(uid, userData);
+  }
+
+  Future<void> validateArtist(String uid, bool isApproved) async {
+    final status = isApproved
+        ? ArtistValidationStatus.approved
+        : ArtistValidationStatus.rejected;
+    final role = isApproved ? UserRole.artist : UserRole.user;
+
+    await updateUserData(uid, {
+      'artistValidationStatus': status.name,
+      'role': role.name,
+    });
+  }
+
   Future<void> signOut() async {
     await Future.wait([
       _auth.signOut(),
@@ -110,9 +131,7 @@ class AuthService {
     ]);
   }
 
-  // Obtener usuario actual
   User? get currentUser => _auth.currentUser;
 
-  // Stream del estado de autenticación
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 }
