@@ -1,12 +1,18 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:arte_latino_xyz/models/artWorkModel.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
 import '../../../services/auth_service.dart';
 import '../../../services/artwork_service.dart';
 import '../../../models/user_model.dart';
 
 class ArtistProfilePage extends StatefulWidget {
-  const ArtistProfilePage({super.key});
+  const ArtistProfilePage({Key? key}) : super(key: key);
 
   @override
   ArtistProfilePageState createState() => ArtistProfilePageState();
@@ -20,24 +26,26 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
   final AuthService _authService = AuthService();
   final ArtworkService _artworkService = ArtworkService();
 
-  int _calculateAge(DateTime? birthDate) {
-    if (birthDate == null) return 0;
-    DateTime today = DateTime.now();
-    int age = today.year - birthDate.year;
-    if (today.month < birthDate.month ||
-        (today.month == birthDate.month && today.day < birthDate.day)) {
-      age--;
-    }
-    return age;
-  }
-
   @override
   void initState() {
     super.initState();
     _fetchUserData();
   }
 
-  void _fetchUserData() async {
+  Future<void> _testImageUrl(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      print('Image URL test: $url');
+      print('Status code: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error testing image URL: $e');
+    }
+  }
+
+  Future<void> _fetchUserData() async {
     User? currentUser = _authService.currentUser;
     print("currentUser: $currentUser");
     if (currentUser != null) {
@@ -51,9 +59,24 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
             artist = fetchedUser;
             artworks = fetchedArtworks;
           });
+
+          for (var artwork in fetchedArtworks) {
+            _testImageUrl(artwork.photoUrl);
+          }
         }
       });
     }
+  }
+
+  int _calculateAge(DateTime? birthDate) {
+    if (birthDate == null) return 0;
+    DateTime today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return age;
   }
 
   void _showArtworkDialog({ArtworkModel? artwork}) {
@@ -64,72 +87,134 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
         TextEditingController(text: artwork?.location ?? '');
     final toolsController =
         TextEditingController(text: artwork?.tools.join(', ') ?? '');
+    String? _base64Image;
+    String? _imageUrl;
+
+    Future<void> _getImage() async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _base64Image = base64Encode(bytes);
+        });
+      }
+    }
+
+    Future<String?> _uploadImage() async {
+      if (_base64Image == null) return null;
+
+      final storage = FirebaseStorage.instance;
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final reference = storage.ref().child('artworks/$fileName');
+
+      try {
+        final Uint8List imageData = base64Decode(_base64Image!);
+        await reference.putData(
+            imageData, SettableMetadata(contentType: 'image/jpeg'));
+        final downloadUrl = await reference.getDownloadURL();
+        print('Image uploaded successfully. URL: $downloadUrl');
+        return downloadUrl;
+      } catch (e) {
+        print('Error uploading image: $e');
+        return null;
+      }
+    }
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(artwork == null ? 'Crear Obra' : 'Editar Obra'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Nombre de la Obra'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Descripción'),
-              ),
-              TextField(
-                controller: locationController,
-                decoration: InputDecoration(labelText: 'Ubicación'),
-              ),
-              TextField(
-                controller: toolsController,
-                decoration: InputDecoration(
-                    labelText: 'Herramientas (separadas por coma)'),
-              ),
-              ElevatedButton(
-                child: Text('Seleccionar Imagen'),
-                onPressed: () {
-                  // Implementar selección de imagen
-                },
-              )
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(artwork == null ? 'Crear Obra' : 'Editar Obra'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Nombre de la Obra'),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(labelText: 'Descripción'),
+                ),
+                TextField(
+                  controller: locationController,
+                  decoration: InputDecoration(labelText: 'Ubicación'),
+                ),
+                TextField(
+                  controller: toolsController,
+                  decoration: InputDecoration(
+                      labelText: 'Herramientas (separadas por coma)'),
+                ),
+                ElevatedButton(
+                  child: Text('Seleccionar Imagen'),
+                  onPressed: () async {
+                    await _getImage();
+                    setState(() {});
+                  },
+                ),
+                if (_base64Image != null)
+                  Image.memory(
+                    base64Decode(_base64Image!),
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_base64Image != null) {
+                  _imageUrl = await _uploadImage();
+                }
+
+                if (_imageUrl == null && artwork != null) {
+                  _imageUrl = artwork.photoUrl;
+                }
+
+                final newArtwork = ArtworkModel(
+                  id: artwork?.id,
+                  name: nameController.text,
+                  photoUrl: _imageUrl ?? '',
+                  publicationDate: artwork?.publicationDate ?? DateTime.now(),
+                  description: descriptionController.text,
+                  tools: toolsController.text
+                      .split(',')
+                      .map((e) => e.trim())
+                      .toList(),
+                  location: locationController.text,
+                  artistId: artist!.uid,
+                );
+
+                try {
+                  if (artwork == null) {
+                    await _artworkService.createArtwork(newArtwork);
+                  } else {
+                    await _artworkService.updateArtwork(newArtwork);
+                  }
+                  print('Artwork saved successfully: ${newArtwork.toMap()}');
+                } catch (e) {
+                  print('Error saving artwork: $e');
+                }
+
+                Navigator.of(context).pop();
+              },
+              child: Text('Guardar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newArtwork = ArtworkModel(
-                id: artwork?.id,
-                name: nameController.text,
-                photoUrl: '', // Pendiente implementación de imagen
-                publicationDate: artwork?.publicationDate ?? DateTime.now(),
-                description: descriptionController.text,
-                tools: toolsController.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .toList(),
-                location: locationController.text,
-                artistId: artist!.uid,
-              );
-
-              if (artwork == null) {
-                await _artworkService.createArtwork(newArtwork);
-              } else {
-                await _artworkService.updateArtwork(newArtwork);
-              }
-
-              Navigator.of(context).pop();
-            },
-            child: Text('Guardar'),
-          ),
-        ],
       ),
     );
   }
@@ -147,11 +232,9 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Stack with cover image and profile photo
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // Cover Image with curved bottom
                 Container(
                   height: 300,
                   decoration: BoxDecoration(
@@ -165,7 +248,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                     ),
                   ),
                 ),
-                // Profile Image
                 Positioned(
                   bottom: -50,
                   left: 0,
@@ -189,7 +271,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                     ),
                   ),
                 ),
-                // Back Button
                 Positioned(
                   top: 40,
                   left: 16,
@@ -202,16 +283,12 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                 ),
               ],
             ),
-
-            SizedBox(height: 60), // Space for profile picture overflow
-
-            // Profile Info
+            SizedBox(height: 60),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Name and Badge
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -252,10 +329,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: 16),
-
-                  // Follow Button
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -281,10 +355,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       ),
                     ),
                   ),
-
                   SizedBox(height: 24),
-
-                  // About Section
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -305,10 +376,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: 24),
-
-                  // Artist Info
                   Row(
                     children: [
                       Expanded(
@@ -361,8 +429,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                     ],
                   ),
                   SizedBox(height: 24),
-
-                  // Portfolio Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -387,8 +453,6 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       ),
                     ],
                   ),
-
-                  // Artwork Grid
                   GridView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -400,14 +464,74 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                     itemCount: artworks.length,
                     itemBuilder: (context, index) {
                       final artwork = artworks[index];
+                      print(
+                          'Loading artwork ${artwork.id}: ${artwork.photoUrl}');
+
                       return GestureDetector(
                         onTap: () => _showArtworkDialog(artwork: artwork),
                         child: Card(
+                          clipBehavior: Clip.antiAlias,
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Image.network(artwork.photoUrl,
-                                  height: 100, fit: BoxFit.cover),
-                              Text(artwork.name),
+                              Expanded(
+                                child: artwork.photoUrl.isNotEmpty
+                                    ? CachedNetworkImage(
+                                        imageUrl: artwork.photoUrl,
+                                        placeholder: (context, url) =>
+                                            CircularProgressIndicator(),
+                                        errorWidget: (context, url, error) {
+                                          print('Error loading image: $error');
+                                          return Container(
+                                            color: Colors.grey[200],
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red,
+                                                  size: 30,
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  'Error al cargar',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: Colors.grey[200],
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.image,
+                                            color: Colors.grey[400],
+                                            size: 30,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(8),
+                                color: Colors.white,
+                                child: Text(
+                                  artwork.name,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ],
                           ),
                         ),

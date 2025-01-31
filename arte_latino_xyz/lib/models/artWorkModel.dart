@@ -1,7 +1,7 @@
 class ArtworkModel {
   final String? id;
   final String name;
-  String photoUrl;
+  final String photoUrl;
   final DateTime publicationDate;
   final String description;
   final List<String> tools;
@@ -11,7 +11,7 @@ class ArtworkModel {
   ArtworkModel({
     this.id,
     required this.name,
-    this.photoUrl = '',
+    required this.photoUrl,
     required this.publicationDate,
     required this.description,
     required this.tools,
@@ -21,6 +21,7 @@ class ArtworkModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'photoUrl': photoUrl,
       'publicationDate': publicationDate.toIso8601String(),
@@ -36,7 +37,8 @@ class ArtworkModel {
       id: documentId,
       name: map['name'] ?? '',
       photoUrl: map['photoUrl'] ?? '',
-      publicationDate: DateTime.parse(map['publicationDate']),
+      publicationDate: DateTime.parse(
+          map['publicationDate'] ?? DateTime.now().toIso8601String()),
       description: map['description'] ?? '',
       tools: List<String>.from(map['tools'] ?? []),
       location: map['location'] ?? '',

@@ -1,39 +1,38 @@
-// lib/services/artwork_service.dart
-import 'package:arte_latino_xyz/models/artWorkModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/artWorkModel.dart';
 
 class ArtworkService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final CollectionReference _artworksCollection =
+      FirebaseFirestore.instance.collection('artworks');
 
-  CollectionReference get _artworks => _firestore.collection('artworks');
-
-  // Crear nueva obra
-  Future<String> createArtwork(ArtworkModel artwork) async {
-    final docRef = await _artworks.add(artwork.toMap());
-    return docRef.id;
+  Future<void> createArtwork(ArtworkModel artwork) async {
+    try {
+      await _artworksCollection.add(artwork.toMap());
+      print('Artwork created successfully: ${artwork.toMap()}');
+    } catch (e) {
+      print('Error creating artwork: $e');
+      throw e;
+    }
   }
 
-  // Obtener obras de un artista
+  Future<void> updateArtwork(ArtworkModel artwork) async {
+    try {
+      await _artworksCollection.doc(artwork.id).update(artwork.toMap());
+      print('Artwork updated successfully: ${artwork.toMap()}');
+    } catch (e) {
+      print('Error updating artwork: $e');
+      throw e;
+    }
+  }
+
   Stream<List<ArtworkModel>> getArtworksByArtist(String artistId) {
-    return _artworks
+    return _artworksCollection
         .where('artistId', isEqualTo: artistId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ArtworkModel.fromMap(
-                  doc.data() as Map<String, dynamic>,
-                  doc.id,
-                ))
-            .toList());
-  }
-
-  // Actualizar obra
-  Future<void> updateArtwork(ArtworkModel artwork) async {
-    if (artwork.id == null) return;
-    await _artworks.doc(artwork.id).update(artwork.toMap());
-  }
-
-  // Eliminar obra
-  Future<void> deleteArtwork(String artworkId) async {
-    await _artworks.doc(artworkId).delete();
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return ArtworkModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+    });
   }
 }

@@ -268,9 +268,20 @@ class _MarketplacePageState extends State<MarketplacePage> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  image: DecorationImage(
-                    image: NetworkImage(product.imageUrl),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Image.network(
+                    product.imageUrl,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
+                      return Center(child: Icon(Icons.error));
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(child: CircularProgressIndicator());
+                    },
                   ),
                 ),
               ),
@@ -280,6 +291,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
               child: Text(
                 product.name,
                 style: TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Padding(
