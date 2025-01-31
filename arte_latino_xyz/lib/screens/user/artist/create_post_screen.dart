@@ -10,7 +10,6 @@ class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _CreatePostScreenState createState() => _CreatePostScreenState();
 }
 
@@ -79,17 +78,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _uploadPost() async {
     final user = _auth.currentUser;
     if (user == null) {
-      _showError('User not authenticated');
+      _showError('Usuario no autenticado');
       return;
     }
 
     if (_mediaFile == null) {
-      _showError('Please select an image or video');
+      _showError('Por favor selecciona una imagen o video');
       return;
     }
 
     if (_captionController.text.trim().isEmpty) {
-      _showError('Please write a caption');
+      _showError('Por favor escribe una descripción');
       return;
     }
 
@@ -118,16 +117,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final TaskSnapshot taskSnapshot = await uploadTask;
       final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
 
-      // Get user data
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      final String username = userDoc.data()?['username'] ?? 'Usuario';
-      final String userPhotoUrl = userDoc.data()?['photoUrl'] ?? '';
-
       // Create post document
       await _firestore.collection('posts').add({
         'userId': user.uid,
-        'username': username,
-        'userPhotoUrl': userPhotoUrl,
+        'username': user.displayName ?? 'Usuario',
+        'userPhotoUrl': user.photoURL ?? '',
         'mediaUrl': downloadUrl,
         'caption': _captionController.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
@@ -140,7 +134,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      _showError('Error uploading post: $e');
+      _showError('Error al subir la publicación: $e');
     } finally {
       if (mounted) {
         setState(() {

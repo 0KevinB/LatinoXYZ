@@ -1,142 +1,180 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:story_view/story_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:video_player/video_player.dart';
 
 class ViewStoryScreen extends StatefulWidget {
   final String userId;
-  final String username;
-  final String profileImageUrl;
 
-  const ViewStoryScreen({
-    Key? key,
-    required this.userId,
-    required this.username,
-    required this.profileImageUrl,
-  }) : super(key: key);
+  const ViewStoryScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
-  ViewStoryScreenState createState() => ViewStoryScreenState();
+  _ViewStoryScreenState createState() => _ViewStoryScreenState();
 }
 
-class ViewStoryScreenState extends State<ViewStoryScreen> {
-  final StoryController controller = StoryController();
-  List<StoryItem> storyItems = [];
-  late String username;
-  late String profileImageUrl;
+class _ViewStoryScreenState extends State<ViewStoryScreen> {
+  late PageController _pageController;
+  int _currentPage = 0;
+  List<DocumentSnapshot> _stories = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    username = widget.username;
-    profileImageUrl = widget.profileImageUrl;
+    _pageController = PageController();
     _loadStories();
+  }
+
+  Future<void> _loadStories() async {
+    final storiesSnapshot = await FirebaseFirestore.instance
+        .collection('stories')
+        .where('userId', isEqualTo: widget.userId)
+        .where('expiresAt', isGreaterThan: Timestamp.now())
+        .orderBy('expiresAt', descending: false)
+        .get();
+
+    setState(() {
+      _stories = storiesSnapshot.docs;
+      _isLoading = false;
+    });
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadStories() async {
-    try {
-      final now = DateTime.now();
-      final QuerySnapshot stories = await FirebaseFirestore.instance
-          .collection('stories')
-          .where('userId', isEqualTo: widget.userId)
-          .where('expiresAt', isGreaterThan: Timestamp.fromDate(now))
-          .orderBy('expiresAt')
-          .get();
-
-      if (!mounted) return;
-
-      final List<StoryItem> items = [];
-      for (var doc in stories.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final mediaUrl = data['mediaUrl'] as String;
-
-        try {
-          if (data['isVideo'] == true) {
-            items.add(StoryItem.pageVideo(
-              mediaUrl,
-              controller: controller,
-            ));
-          } else {
-            items.add(StoryItem.pageImage(
-              url: mediaUrl,
-              controller: controller,
-            ));
-          }
-        } catch (e) {
-          debugPrint('Error loading media: $e');
-          // Skip this item if there's an error
-          continue;
-        }
-      }
-
-      if (!mounted) return;
-      setState(() {
-        storyItems = items;
-      });
-    } catch (e) {
-      debugPrint('Error loading stories: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading stories: $e')),
+  Widget _buildStoryContent(String mediaUrl) {
+    if (mediaUrl.contains('.mp4')) {
+      return _VideoPlayerWidget(videoUrl: mediaUrl);
+    } else {
+      return CachedNetworkImage(
+        imageUrl: mediaUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) =>
+            const Center(child: CircularProgressIndicator()),
+        errorWidget: (context, url, error) => const Icon(Icons.error),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_stories.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text('No hay historias disponibles')),
+      );
+    }
+
     return Scaffold(
-      body: storyItems.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTapDown: (details) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          if (details.globalPosition.dx < screenWidth / 2) {
+            if (_currentPage > 0) {
+              _pageController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          } else {
+            if (_currentPage < _stories.length - 1) {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              Navigator.of(context).pop();
+            }
+          }
+        },
+        child: PageView.builder(
+          controller: _pageController,
+          itemCount: _stories.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index;
+            });
+          },
+          itemBuilder: (context, index) {
+            final story = _stories[index].data() as Map<String, dynamic>;
+            return Stack(
+              fit: StackFit.expand,
               children: [
-                StoryView(
-                  storyItems: storyItems,
-                  controller: controller,
-                  onComplete: () => Navigator.pop(context),
-                  onVerticalSwipeComplete: (direction) {
-                    if (direction == Direction.down) {
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundImage: profileImageUrl.isNotEmpty
-                              ? NetworkImage(profileImageUrl)
-                              : null,
-                          radius: 20,
-                          child: profileImageUrl.isEmpty
-                              ? const Icon(Icons.person)
-                              : null,
+                _buildStoryContent(story['mediaUrl'] as String),
+                Positioned(
+                  top: 40,
+                  left: 10,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(story['profileImageUrl'] as String),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        story['username'] as String,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          username,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
+            );
+          },
+        ),
+      ),
     );
+  }
+}
+
+class _VideoPlayerWidget extends StatefulWidget {
+  final String videoUrl;
+
+  const _VideoPlayerWidget({Key? key, required this.videoUrl})
+      : super(key: key);
+
+  @override
+  __VideoPlayerWidgetState createState() => __VideoPlayerWidgetState();
+}
+
+class __VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.videoUrl)
+      ..initialize().then((_) {
+        setState(() {});
+        _controller.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _controller.value.isInitialized
+        ? AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: VideoPlayer(_controller),
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 }

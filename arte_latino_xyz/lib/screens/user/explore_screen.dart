@@ -71,9 +71,6 @@ class ExploreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<User?>(
@@ -180,10 +177,7 @@ class ExploreScreen extends StatelessWidget {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 ViewStoryScreen(
-                                              userId: 'user123',
-                                              username: 'John Doe',
-                                              profileImageUrl:
-                                                  'https://example.com/profile.jpg',
+                                              userId: story['userId'] as String,
                                             ),
                                           ),
                                         );
@@ -233,55 +227,26 @@ class ExploreScreen extends StatelessWidget {
                         (context, index) {
                           final post = snapshot.data!.docs[index].data()
                               as Map<String, dynamic>;
-                          final String userId = post['userId'] as String? ?? '';
+                          final dynamic likesData = post['likes'];
+                          final List<String> likesList = likesData is int
+                              ? []
+                              : List<String>.from(likesData ?? []);
 
-                          return FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(userId)
-                                .get(),
-                            builder: (context, userSnapshot) {
-                              if (userSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
+                          final List<Comment> commentsList =
+                              (post['comments'] as List<dynamic>? ?? [])
+                                  .map((comment) => Comment.fromMap(
+                                      comment as Map<String, dynamic>))
+                                  .toList();
 
-                              if (userSnapshot.hasError ||
-                                  !userSnapshot.hasData) {
-                                return const SizedBox(); // Skip this post if user data can't be fetched
-                              }
-
-                              final userData = userSnapshot.data!.data()
-                                  as Map<String, dynamic>?;
-                              print(userData);
-                              final username =
-                                  userData?['name'] as String? ?? 'Usuario';
-                              final userPhotoUrl =
-                                  userData?['photoUrl'] as String? ??
-                                      'https://via.placeholder.com/40';
-
-                              final dynamic likesData = post['likes'];
-                              final List<String> likesList = likesData is int
-                                  ? []
-                                  : List<String>.from(likesData ?? []);
-
-                              final List<Comment> commentsList =
-                                  (post['comments'] as List<dynamic>? ?? [])
-                                      .map((comment) => Comment.fromMap(
-                                          comment as Map<String, dynamic>))
-                                      .toList();
-
-                              return PostCard(
-                                postId: snapshot.data!.docs[index].id,
-                                username: username,
-                                imageUrl: post['mediaUrl'] as String? ?? '',
-                                caption: post['caption'] as String? ?? '',
-                                likes: likesList,
-                                userPhotoUrl: userPhotoUrl,
-                                comments: commentsList,
-                              );
-                            },
+                          return PostCard(
+                            postId: snapshot.data!.docs[index].id,
+                            username: post['username'] as String? ?? 'Usuario',
+                            imageUrl: post['mediaUrl'] as String? ?? '',
+                            caption: post['caption'] as String? ?? '',
+                            likes: likesList,
+                            userPhotoUrl: post['userPhotoUrl'] as String? ??
+                                'https://via.placeholder.com/40',
+                            comments: commentsList,
                           );
                         },
                         childCount: snapshot.data!.docs.length,
