@@ -1,4 +1,5 @@
 import 'package:arte_latino_xyz/models/product_model.dart';
+import 'package:arte_latino_xyz/screens/main_screen.dart';
 import 'package:arte_latino_xyz/screens/marketplace/marketplace_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -334,10 +335,10 @@ class _PaymentPageState extends State<PaymentPage> {
             TextButton(
               child: Text('OK'),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const MarketplacePage()),
+                // Option 1: Navigate back to MainScreen
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                  (route) => false,
                 );
               },
             ),

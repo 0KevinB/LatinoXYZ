@@ -1,3 +1,4 @@
+import 'package:arte_latino_xyz/screens/user/explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -36,11 +37,188 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
     _loadArtTypes();
   }
 
+  String _formatCategoryName(String name) {
+    // Dictionary for special cases
+    final specialCases = {
+      'artesMusicales': 'Artes Musicales',
+      'arteDigital': 'Arte Digital',
+      'arteUrbano': 'Arte Urbano',
+      'artesAplicadasYDiseño': 'Artes Aplicadas y Diseño',
+      'artesLiterarias': 'Artes Literarias',
+      'cineYVideoarte': 'Cine y Videoarte',
+      'danza': 'Danza',
+      'dibujo': 'Dibujo',
+      'escultura': 'Escultura',
+      'fotografia': 'Fotografía',
+      'grabado': 'Grabado',
+      'instalacionesArtisticas': 'Instalaciones Artísticas',
+      'performance': 'Performance',
+      'pintura': 'Pintura',
+      'teatro': 'Teatro',
+    };
+
+    return specialCases[name] ?? name;
+  }
+
+  Widget _buildCategoriesSection() {
+    return Container(
+      padding: EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '¿Eres artista?',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF201658),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Si eres artista, puedes solicitar una verificación siguiendo los pasos a continuación.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 32),
+          Text(
+            'Selecciona tus categorías:',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 16),
+          ...(_artTypes.map((artType) => _buildCategoryCard(artType)).toList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(ArtType artType) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _selectedCategories[artType.name] == true
+              ? Color(0xFF201658)
+              : Colors.grey[300]!,
+          width: _selectedCategories[artType.name] == true ? 2 : 1,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          unselectedWidgetColor: Colors.grey[400],
+        ),
+        child: ExpansionTile(
+          title: Text(
+            _formatCategoryName(
+                artType.name), // Use the formatting function here
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: _selectedCategories[artType.name] == true
+                  ? Color(0xFF201658)
+                  : Colors.black87,
+            ),
+          ),
+          leading: Checkbox(
+            value: _selectedCategories[artType.name],
+            activeColor: Color(0xFF201658),
+            onChanged: (bool? selected) {
+              setState(() {
+                _selectedCategories[artType.name] = selected ?? false;
+                if (!selected!) {
+                  _selectedSubcategories[artType.name] = [];
+                }
+              });
+            },
+          ),
+          children: [
+            if (artType.techniques.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Subcategorías:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: artType.techniques.map((technique) {
+                        final isSelected = _selectedSubcategories[artType.name]!
+                            .contains(technique);
+                        return FilterChip(
+                          label: Text(technique),
+                          selected: isSelected,
+                          onSelected: _selectedCategories[artType.name] == true
+                              ? (bool selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      _selectedSubcategories[artType.name]!
+                                          .add(technique);
+                                    } else {
+                                      _selectedSubcategories[artType.name]!
+                                          .remove(technique);
+                                    }
+                                  });
+                                }
+                              : null,
+                          selectedColor: Color(0xFF201658).withOpacity(0.1),
+                          checkmarkColor: Color(0xFF201658),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _getCustomInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.grey[600]),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF201658), width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.red),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.red, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    );
+  }
+
   Future<void> _loadArtTypes() async {
     final artTypes = await _artTypeService.getArtTypes();
     setState(() {
       _artTypes = artTypes;
-      // Inicializar el estado de selección
       for (var artType in artTypes) {
         _selectedCategories[artType.name] = false;
         _selectedSubcategories[artType.name] = [];
@@ -102,7 +280,7 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         final user = _authService.currentUser;
         if (user != null) {
           List<ArtType> selectedArtTypes = _selectedCategories.entries
-              .where((entry) => entry.value) // Filtra los seleccionados
+              .where((entry) => entry.value)
               .map((entry) => ArtType(
                     name: entry.key,
                     techniques: _selectedSubcategories[entry.key] ?? [],
@@ -133,121 +311,6 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Verificación de Artista')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nombre completo'),
-                validator: (value) =>
-                    value?.isEmpty == true ? 'Campo requerido' : null,
-              ),
-              TextFormField(
-                controller: _artistNameController,
-                decoration: InputDecoration(labelText: 'Nombre artístico'),
-                validator: (value) =>
-                    value?.isEmpty == true ? 'Campo requerido' : null,
-              ),
-              TextFormField(
-                controller: _nationalityController,
-                decoration: InputDecoration(labelText: 'Nacionalidad'),
-                validator: (value) =>
-                    value?.isEmpty == true ? 'Campo requerido' : null,
-              ),
-              ListTile(
-                title: Text(_birthDate == null
-                    ? 'Seleccionar fecha de nacimiento'
-                    : 'Fecha de nacimiento: ${_birthDate!.toLocal().toString().split(' ')[0]}'),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () => _selectDate(context),
-              ),
-              SizedBox(height: 16),
-              Text('Selecciona tu tipo de arte y subcategorías:'),
-              Column(
-                children: _artTypes.map((artType) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CheckboxListTile(
-                        title: Text(artType.name,
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        value: _selectedCategories[artType.name],
-                        onChanged: (bool? selected) {
-                          setState(() {
-                            _selectedCategories[artType.name] =
-                                selected ?? false;
-                            // Si se desmarca, limpiar las subcategorías seleccionadas
-                            if (!selected!) {
-                              _selectedSubcategories[artType.name] = [];
-                            }
-                          });
-                        },
-                      ),
-                      if (_selectedCategories[artType
-                          .name]!) // Mostrar subcategorías si la categoría está marcada
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20.0),
-                          child: Column(
-                            children: artType.techniques.map((subtype) {
-                              return CheckboxListTile(
-                                title: Text(subtype),
-                                value: _selectedSubcategories[artType.name]!
-                                    .contains(subtype),
-                                onChanged: (bool? selected) {
-                                  setState(() {
-                                    if (selected!) {
-                                      _selectedSubcategories[artType.name]!
-                                          .add(subtype);
-                                    } else {
-                                      _selectedSubcategories[artType.name]!
-                                          .remove(subtype);
-                                    }
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                    ],
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 16),
-              Text('Selecciona 3 imágenes de tus obras:'),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(3, (index) => _buildImagePicker(index)),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Descripción artística'),
-                maxLines: 3,
-                validator: (value) =>
-                    value?.isEmpty == true ? 'Campo requerido' : null,
-              ),
-              SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _requestVerification,
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : Text('Solicitar verificación'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildImagePicker(int index) {
     return GestureDetector(
       onTap: () => _pickImage(index),
@@ -255,13 +318,161 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+          border: Border.all(color: Colors.grey[300]!),
           borderRadius: BorderRadius.circular(8),
         ),
         child: _selectedImages[index] != null
-            ? Image.file(_selectedImages[index]!, fit: BoxFit.cover)
-            : Icon(Icons.add_photo_alternate, size: 40),
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(_selectedImages[index]!, fit: BoxFit.cover),
+              )
+            : Icon(Icons.add_photo_alternate,
+                size: 40, color: Colors.grey[400]),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Verificación de Artista'),
+        backgroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ExploreScreen()),
+              );
+            },
+            child: Text(
+              'Omitir por ahora',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+          child: Column(
+        children: [
+          _buildCategoriesSection(),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: _getCustomInputDecoration('Nombre completo'),
+                    validator: (value) =>
+                        value?.isEmpty == true ? 'Campo requerido' : null,
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: _artistNameController,
+                    decoration: _getCustomInputDecoration('Nombre artístico'),
+                    validator: (value) =>
+                        value?.isEmpty == true ? 'Campo requerido' : null,
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nationalityController,
+                    decoration: _getCustomInputDecoration('Nacionalidad'),
+                    validator: (value) =>
+                        value?.isEmpty == true ? 'Campo requerido' : null,
+                  ),
+                  SizedBox(height: 16),
+                  InkWell(
+                    onTap: () => _selectDate(context),
+                    child: InputDecorator(
+                      decoration: _getCustomInputDecoration(''),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _birthDate == null
+                                ? 'Seleccionar fecha de nacimiento'
+                                : 'Fecha: ${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Icon(Icons.calendar_today),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Selecciona 3 imágenes de tus obras:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children:
+                        List.generate(3, (index) => _buildImagePicker(index)),
+                  ),
+                  SizedBox(height: 24),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration:
+                        _getCustomInputDecoration('Descripción artística')
+                            .copyWith(alignLabelWithHint: true),
+                    maxLines: 3,
+                    validator: (value) =>
+                        value?.isEmpty == true ? 'Campo requerido' : null,
+                  ),
+                  SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _requestVerification,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF201658),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text('Solicitar verificación',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              )),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ],
+      )),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _artistNameController.dispose();
+    _descriptionController.dispose();
+    _nationalityController.dispose();
+    super.dispose();
   }
 }
