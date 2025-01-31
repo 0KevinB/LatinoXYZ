@@ -3,26 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 class PostCard extends StatefulWidget {
   final String postId;
   final String username;
-  final String imageUrl;
+  final String mediaUrl;
   final String caption;
   final List<String> likes;
   final String userPhotoUrl;
   final List<Comment> comments;
+  final bool isVideo;
 
   const PostCard({
-    super.key,
+    Key? key,
     required this.postId,
     required this.username,
-    required this.imageUrl,
+    required this.mediaUrl,
     required this.caption,
     required this.likes,
     required this.userPhotoUrl,
     required this.comments,
-  });
+    required this.isVideo,
+  }) : super(key: key);
 
   @override
   PostCardState createState() => PostCardState();
@@ -33,16 +36,48 @@ class PostCardState extends State<PostCard> {
   bool _showAllComments = false;
   final int _initialCommentCount = 2;
   final TextEditingController _commentController = TextEditingController();
+  late VideoPlayerController _videoPlayerController;
+  bool _isVideoInitialized = false;
+  double? _aspectRatio;
 
   @override
   void initState() {
     super.initState();
     _checkIfLiked();
+    if (widget.isVideo) {
+      _initializeVideoPlayer();
+    } else {
+      _loadImage();
+    }
+  }
+
+  void _initializeVideoPlayer() {
+    _videoPlayerController = VideoPlayerController.network(widget.mediaUrl)
+      ..initialize().then((_) {
+        setState(() {
+          _isVideoInitialized = true;
+          _aspectRatio = _videoPlayerController.value.aspectRatio;
+        });
+      });
+  }
+
+  void _loadImage() {
+    final image = Image.network(widget.mediaUrl);
+    image.image.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        setState(() {
+          _aspectRatio = info.image.width / info.image.height;
+        });
+      }),
+    );
   }
 
   @override
   void dispose() {
     _commentController.dispose();
+    if (widget.isVideo) {
+      _videoPlayerController.dispose();
+    }
     super.dispose();
   }
 
@@ -138,12 +173,24 @@ class PostCardState extends State<PostCard> {
               ],
             ),
           ),
-          // Image
+          // Media content
           AspectRatio(
-            aspectRatio: 1, // Instagram usa relación 1:1
-            child: Image.network(
-              widget.imageUrl,
-              fit: BoxFit.cover,
+            aspectRatio: 1, // Mantener el contenedor cuadrado
+            child: Container(
+              color: Colors.black, // Fondo negro para las franjas
+              child: Center(
+                child: _aspectRatio != null
+                    ? AspectRatio(
+                        aspectRatio: _aspectRatio!,
+                        child: widget.isVideo
+                            ? _buildVideoPlayer()
+                            : Image.network(
+                                widget.mediaUrl,
+                                fit: BoxFit.contain,
+                              ),
+                      )
+                    : const CircularProgressIndicator(),
+              ),
             ),
           ),
           // Action Buttons
@@ -305,5 +352,33 @@ class PostCardState extends State<PostCard> {
           ),
         )
         .toList();
+  }
+
+  Widget _buildVideoPlayer() {
+    if (!_isVideoInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        VideoPlayer(_videoPlayerController),
+        IconButton(
+          icon: Icon(
+            _videoPlayerController.value.isPlaying
+                ? Icons.pause
+                : Icons.play_arrow,
+            size: 50,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            setState(() {
+              _videoPlayerController.value.isPlaying
+                  ? _videoPlayerController.pause()
+                  : _videoPlayerController.play();
+            });
+          },
+        ),
+      ],
+    );
   }
 }

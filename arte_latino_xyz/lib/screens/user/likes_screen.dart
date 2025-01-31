@@ -1,3 +1,4 @@
+import 'package:arte_latino_xyz/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import '../../services/likes_service.dart';
 import '../../services/auth_service.dart';
@@ -239,7 +240,11 @@ class EmptyLikesWidget extends StatelessWidget {
           SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              // Option 1: Navigate back to MainScreen
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue[900],

@@ -1,4 +1,5 @@
 import 'package:arte_latino_xyz/models/post_model.dart';
+import 'package:arte_latino_xyz/screens/admin/admin_dashboard.dart';
 import 'package:arte_latino_xyz/screens/auth/register_artist_screen.dart';
 import 'package:arte_latino_xyz/screens/user/view_story_screen.dart';
 import 'package:arte_latino_xyz/widgets/post_card.dart';
@@ -56,6 +57,22 @@ class ExploreScreen extends StatelessWidget {
                 },
                 child: const Text(
                   'a',
+                  style: TextStyle(
+                    color: Color(0xFF201658),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AdminDashboardScreen()),
+                  );
+                },
+                child: const Text(
+                  'Administrar',
                   style: TextStyle(
                     color: Color(0xFF201658),
                     fontSize: 16,
@@ -241,12 +258,13 @@ class ExploreScreen extends StatelessWidget {
                           return PostCard(
                             postId: snapshot.data!.docs[index].id,
                             username: post['username'] as String? ?? 'Usuario',
-                            imageUrl: post['mediaUrl'] as String? ?? '',
+                            mediaUrl: post['mediaUrl'] as String? ?? '',
                             caption: post['caption'] as String? ?? '',
                             likes: likesList,
                             userPhotoUrl: post['userPhotoUrl'] as String? ??
                                 'https://via.placeholder.com/40',
                             comments: commentsList,
+                            isVideo: post['isVideo'] as bool? ?? false,
                           );
                         },
                         childCount: snapshot.data!.docs.length,

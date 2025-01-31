@@ -1,6 +1,5 @@
 import 'package:arte_latino_xyz/models/product_model.dart';
 import 'package:arte_latino_xyz/screens/main_screen.dart';
-import 'package:arte_latino_xyz/screens/marketplace/marketplace_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

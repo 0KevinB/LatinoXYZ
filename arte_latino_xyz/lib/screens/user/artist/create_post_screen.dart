@@ -196,7 +196,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     icon: const Icon(Icons.image),
                     label: const Text('Imagen'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color(0xFF201658),
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -208,7 +208,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     icon: const Icon(Icons.video_library),
                     label: const Text('Video'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color(0xFF201658),
                       foregroundColor: Colors.white,
                     ),
                   ),
