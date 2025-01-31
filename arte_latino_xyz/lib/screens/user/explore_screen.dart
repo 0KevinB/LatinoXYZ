@@ -1,7 +1,5 @@
 import 'package:arte_latino_xyz/models/post_model.dart';
-import 'package:arte_latino_xyz/screens/admin/admin_validation_screen.dart';
 import 'package:arte_latino_xyz/screens/auth/register_artist_screen.dart';
-import 'package:arte_latino_xyz/screens/user/artist/profile_screen.dart';
 import 'package:arte_latino_xyz/screens/user/view_story_screen.dart';
 import 'package:arte_latino_xyz/widgets/post_card.dart';
 import 'package:arte_latino_xyz/widgets/story_circle.dart';
@@ -235,26 +233,55 @@ class ExploreScreen extends StatelessWidget {
                         (context, index) {
                           final post = snapshot.data!.docs[index].data()
                               as Map<String, dynamic>;
-                          final dynamic likesData = post['likes'];
-                          final List<String> likesList = likesData is int
-                              ? []
-                              : List<String>.from(likesData ?? []);
+                          final String userId = post['userId'] as String? ?? '';
 
-                          final List<Comment> commentsList =
-                              (post['comments'] as List<dynamic>? ?? [])
-                                  .map((comment) => Comment.fromMap(
-                                      comment as Map<String, dynamic>))
-                                  .toList();
+                          return FutureBuilder<DocumentSnapshot>(
+                            future: FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(userId)
+                                .get(),
+                            builder: (context, userSnapshot) {
+                              if (userSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
 
-                          return PostCard(
-                            postId: snapshot.data!.docs[index].id,
-                            username: post['username'] as String? ?? 'Usuario',
-                            imageUrl: post['mediaUrl'] as String? ?? '',
-                            caption: post['caption'] as String? ?? '',
-                            likes: likesList,
-                            userPhotoUrl: post['userPhotoUrl'] as String? ??
-                                'https://via.placeholder.com/40',
-                            comments: commentsList,
+                              if (userSnapshot.hasError ||
+                                  !userSnapshot.hasData) {
+                                return const SizedBox(); // Skip this post if user data can't be fetched
+                              }
+
+                              final userData = userSnapshot.data!.data()
+                                  as Map<String, dynamic>?;
+                              print(userData);
+                              final username =
+                                  userData?['name'] as String? ?? 'Usuario';
+                              final userPhotoUrl =
+                                  userData?['photoUrl'] as String? ??
+                                      'https://via.placeholder.com/40';
+
+                              final dynamic likesData = post['likes'];
+                              final List<String> likesList = likesData is int
+                                  ? []
+                                  : List<String>.from(likesData ?? []);
+
+                              final List<Comment> commentsList =
+                                  (post['comments'] as List<dynamic>? ?? [])
+                                      .map((comment) => Comment.fromMap(
+                                          comment as Map<String, dynamic>))
+                                      .toList();
+
+                              return PostCard(
+                                postId: snapshot.data!.docs[index].id,
+                                username: username,
+                                imageUrl: post['mediaUrl'] as String? ?? '',
+                                caption: post['caption'] as String? ?? '',
+                                likes: likesList,
+                                userPhotoUrl: userPhotoUrl,
+                                comments: commentsList,
+                              );
+                            },
                           );
                         },
                         childCount: snapshot.data!.docs.length,

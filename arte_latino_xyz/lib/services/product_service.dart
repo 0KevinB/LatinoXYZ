@@ -60,27 +60,43 @@ class ProductService {
     }
   }
 
+  Stream<List<Product>> streamProducts() {
+    return _products.snapshots().map((snapshot) {
+      print('Snapshot received. Document count: ${snapshot.docs.length}');
+      return snapshot.docs
+          .map((doc) {
+            try {
+              print('Processing document: ${doc.id}');
+              return Product.fromMap(doc.data() as Map<String, dynamic>);
+            } catch (e) {
+              print('Error processing document ${doc.id}: $e');
+              return null;
+            }
+          })
+          .where((product) => product != null)
+          .cast<Product>()
+          .toList();
+    });
+  }
+
   Future<List<Product>> getProducts() async {
     try {
       final snapshot = await _products.get();
+      print('Fetched ${snapshot.docs.length} products');
       return snapshot.docs
-          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) {
+            try {
+              return Product.fromMap(doc.data() as Map<String, dynamic>);
+            } catch (e) {
+              print('Error processing document ${doc.id}: $e');
+              return null;
+            }
+          })
+          .where((product) => product != null)
+          .cast<Product>()
           .toList();
     } catch (e) {
       print('Error getting products: $e');
-      rethrow;
-    }
-  }
-
-  Future<Product?> getProduct(String id) async {
-    try {
-      final doc = await _products.doc(id).get();
-      if (doc.exists) {
-        return Product.fromMap(doc.data() as Map<String, dynamic>);
-      }
-      return null;
-    } catch (e) {
-      print('Error getting product: $e');
       rethrow;
     }
   }
@@ -101,13 +117,5 @@ class ProductService {
       print('Error deleting product: $e');
       rethrow;
     }
-  }
-
-  Stream<List<Product>> streamProducts() {
-    return _products.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
-    });
   }
 }
