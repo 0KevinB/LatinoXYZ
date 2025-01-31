@@ -27,6 +27,8 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
   final _artTypeService = ArtTypeService();
   final _authService = AuthService();
   bool _isLoading = false;
+  Map<String, bool> _selectedCategories = {};
+  Map<String, List<String>> _selectedSubcategories = {};
 
   @override
   void initState() {
@@ -38,6 +40,11 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
     final artTypes = await _artTypeService.getArtTypes();
     setState(() {
       _artTypes = artTypes;
+      // Inicializar el estado de selección
+      for (var artType in artTypes) {
+        _selectedCategories[artType.name] = false;
+        _selectedSubcategories[artType.name] = [];
+      }
     });
   }
 
@@ -94,13 +101,21 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
       try {
         final user = _authService.currentUser;
         if (user != null) {
+          List<ArtType> selectedArtTypes = _selectedCategories.entries
+              .where((entry) => entry.value) // Filtra los seleccionados
+              .map((entry) => ArtType(
+                    name: entry.key,
+                    techniques: _selectedSubcategories[entry.key] ?? [],
+                  ))
+              .toList();
+
           await _authService.requestArtistValidation(
             user.uid,
             artisticName: _artistNameController.text,
             birthDate: _birthDate!,
             nationality: _nationalityController.text,
             artistDescription: _descriptionController.text,
-            artTypes: [_selectedArtType!],
+            artTypes: selectedArtTypes,
           );
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -154,23 +169,56 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
                 trailing: Icon(Icons.calendar_today),
                 onTap: () => _selectDate(context),
               ),
-              DropdownButtonFormField<ArtType>(
-                value: _selectedArtType,
-                items: _artTypes.map((ArtType artType) {
-                  return DropdownMenuItem<ArtType>(
-                    value: artType,
-                    child: Text(artType.name),
+              SizedBox(height: 16),
+              Text('Selecciona tu tipo de arte y subcategorías:'),
+              Column(
+                children: _artTypes.map((artType) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CheckboxListTile(
+                        title: Text(artType.name,
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        value: _selectedCategories[artType.name],
+                        onChanged: (bool? selected) {
+                          setState(() {
+                            _selectedCategories[artType.name] =
+                                selected ?? false;
+                            // Si se desmarca, limpiar las subcategorías seleccionadas
+                            if (!selected!) {
+                              _selectedSubcategories[artType.name] = [];
+                            }
+                          });
+                        },
+                      ),
+                      if (_selectedCategories[artType
+                          .name]!) // Mostrar subcategorías si la categoría está marcada
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20.0),
+                          child: Column(
+                            children: artType.techniques.map((subtype) {
+                              return CheckboxListTile(
+                                title: Text(subtype),
+                                value: _selectedSubcategories[artType.name]!
+                                    .contains(subtype),
+                                onChanged: (bool? selected) {
+                                  setState(() {
+                                    if (selected!) {
+                                      _selectedSubcategories[artType.name]!
+                                          .add(subtype);
+                                    } else {
+                                      _selectedSubcategories[artType.name]!
+                                          .remove(subtype);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
                   );
                 }).toList(),
-                onChanged: (ArtType? newValue) {
-                  setState(() {
-                    _selectedArtType = newValue;
-                  });
-                },
-                decoration: InputDecoration(labelText: 'Tipo de arte'),
-                validator: (value) => value == null
-                    ? 'Por favor selecciona un tipo de arte'
-                    : null,
               ),
               SizedBox(height: 16),
               Text('Selecciona 3 imágenes de tus obras:'),
