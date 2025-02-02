@@ -4,7 +4,7 @@ import 'package:arte_latino_xyz/models/user_model.dart';
 import 'package:arte_latino_xyz/models/post_model.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   SearchPageState createState() => SearchPageState();
@@ -17,29 +17,29 @@ class SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Search Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Buscar',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Buscar artistas, posts...',
-                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Buscar productos, artistas...',
+                        prefixIcon: Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
@@ -57,15 +57,12 @@ class SearchPageState extends State<SearchPage> {
                 ),
               ),
             ),
-            // Artists Section
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Text(
-                  _searchQuery.isEmpty
-                      ? 'Artistas destacados'
-                      : 'Resultados de artistas',
-                  style: const TextStyle(
+                  'Artistas en tendencia',
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -73,22 +70,19 @@ class SearchPageState extends State<SearchPage> {
               ),
             ),
             _buildArtistsList(),
-            // Posts Section
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Text(
-                  _searchQuery.isEmpty
-                      ? 'Posts recientes'
-                      : 'Resultados de posts',
-                  style: const TextStyle(
+                  'Posts populares',
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            _buildPostsList(),
+            _buildPopularPostsList(),
           ],
         ),
       ),
@@ -96,7 +90,6 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildArtistsList() {
-    // Simplified query that only requires a single-field index
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -163,168 +156,6 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildPostsList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('createdAt', descending: true)
-          .limit(10)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('Error: ${snapshot.error}'),
-            ),
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final posts = snapshot.data?.docs
-                .map((doc) {
-                  // Correctly map the document data to PostModel
-                  final data = doc.data() as Map<String, dynamic>;
-                  return PostModel.fromMap(data, doc.id);
-                })
-                .where((post) =>
-                    _searchQuery.isEmpty ||
-                    post.text
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase()) ||
-                    post.username
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase()))
-                .toList() ??
-            [];
-
-        if (posts.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No se encontraron posts'),
-            ),
-          );
-        }
-
-        return SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final post = posts[index];
-                return GestureDetector(
-                  onTap: () {
-                    // Aquí puedes agregar la navegación al detalle del post
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (post.mediaUrl != null)
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12),
-                              ),
-                              child: Image.network(
-                                post.mediaUrl!,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey[200],
-                                    child: const Center(
-                                      child: Icon(Icons.error_outline),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                post.username,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (post.text.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  post.text,
-                                  style: const TextStyle(fontSize: 12),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '${post.likes.length} likes',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    '${post.comments.length} comments',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              childCount: posts.length,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildArtistCard(UserModel user) {
     return Column(
       children: [
@@ -340,10 +171,10 @@ class SearchPageState extends State<SearchPage> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           user.artisticName ?? user.name ?? 'Artista',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -358,7 +189,78 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildPostCard(PostModel post) {
+  Widget _buildPopularPostsList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy('likes', descending: true)
+          .limit(10)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Text('Error: ${snapshot.error}'),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final posts = snapshot.data?.docs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return PostModel.fromMap(data, doc.id);
+                })
+                .where((post) =>
+                    _searchQuery.isEmpty ||
+                    post.text.toLowerCase().contains(_searchQuery) ||
+                    post.username.toLowerCase().contains(_searchQuery))
+                .toList() ??
+            [];
+
+        if (posts.isEmpty) {
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Text('No se encontraron posts'),
+            ),
+          );
+        }
+
+        return SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.8, // Increased from 0.75 to make cards larger
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final post = posts[index];
+                return PopularPostCard(post: post);
+              },
+              childCount: posts.length,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class PopularPostCard extends StatelessWidget {
+  final PostModel post;
+
+  const PopularPostCard({super.key, required this.post});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -368,65 +270,78 @@ class SearchPageState extends State<SearchPage> {
             color: Colors.grey.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 5,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.mediaUrl != null)
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            // Image
+            if (post.mediaUrl != null && !post.isVideo)
+              Image.network(
                 post.mediaUrl!,
-                height: 150,
+                height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 150,
+                    height: 200,
                     color: Colors.grey[200],
-                    child: const Icon(Icons.error),
+                    child: Icon(Icons.error),
                   );
                 },
               ),
+
+            // Info overlay at bottom
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        post.username,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${post.likes.length}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  post.text,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${post.likes.length} likes • ${post.comments.length} comments',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  post.username,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[900],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

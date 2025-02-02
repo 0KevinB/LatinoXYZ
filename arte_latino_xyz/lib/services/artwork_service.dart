@@ -11,7 +11,7 @@ class ArtworkService {
       print('Artwork created successfully: ${artwork.toMap()}');
     } catch (e) {
       print('Error creating artwork: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -21,7 +21,7 @@ class ArtworkService {
       print('Artwork updated successfully: ${artwork.toMap()}');
     } catch (e) {
       print('Error updating artwork: $e');
-      throw e;
+      rethrow;
     }
   }
 

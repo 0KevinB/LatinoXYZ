@@ -65,6 +65,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Marketplace - ${categoryNames[_selectedCategory] ?? _selectedCategory}',
@@ -202,7 +203,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
           }
         });
       },
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       selectedColor: primaryColor,
       pressElevation: 0,
       shadowColor: Colors.transparent,
@@ -222,7 +223,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
+        return SizedBox(
           height: 400,
           child: SingleChildScrollView(
             child: Column(
@@ -265,42 +266,57 @@ class _MarketplacePageState extends State<MarketplacePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: $error');
-                      return Center(child: Icon(Icons.error));
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(child: CircularProgressIndicator());
-                    },
+              // Permite que la imagen se adapte sin desbordar
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(12)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(12)),
+                    child: Image.network(
+                      product.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.error, color: Colors.grey[400]),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
             Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text(
-                product.name,
-                style: TextStyle(fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '\$${product.price}',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('\$${product.price}',
-                  style: TextStyle(color: Colors.grey)),
-            ),
-            SizedBox(height: 8),
           ],
         ),
       ),

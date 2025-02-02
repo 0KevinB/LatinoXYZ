@@ -12,7 +12,7 @@ import '../../../services/artwork_service.dart';
 import '../../../models/user_model.dart';
 
 class ArtistProfilePage extends StatefulWidget {
-  const ArtistProfilePage({Key? key}) : super(key: key);
+  const ArtistProfilePage({super.key});
 
   @override
   ArtistProfilePageState createState() => ArtistProfilePageState();
@@ -87,10 +87,10 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
         TextEditingController(text: artwork?.location ?? '');
     final toolsController =
         TextEditingController(text: artwork?.tools.join(', ') ?? '');
-    String? _base64Image;
-    String? _imageUrl;
+    String? base64Image;
+    String? imageUrl;
 
-    Future<void> _getImage() async {
+    Future<void> getImage() async {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
         source: ImageSource.gallery,
@@ -102,20 +102,20 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _base64Image = base64Encode(bytes);
+          base64Image = base64Encode(bytes);
         });
       }
     }
 
-    Future<String?> _uploadImage() async {
-      if (_base64Image == null) return null;
+    Future<String?> uploadImage() async {
+      if (base64Image == null) return null;
 
       final storage = FirebaseStorage.instance;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final reference = storage.ref().child('artworks/$fileName');
 
       try {
-        final Uint8List imageData = base64Decode(_base64Image!);
+        final Uint8List imageData = base64Decode(base64Image!);
         await reference.putData(
             imageData, SettableMetadata(contentType: 'image/jpeg'));
         final downloadUrl = await reference.getDownloadURL();
@@ -155,13 +155,13 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                 ElevatedButton(
                   child: Text('Seleccionar Imagen'),
                   onPressed: () async {
-                    await _getImage();
+                    await getImage();
                     setState(() {});
                   },
                 ),
-                if (_base64Image != null)
+                if (base64Image != null)
                   Image.memory(
-                    base64Decode(_base64Image!),
+                    base64Decode(base64Image!),
                     height: 100,
                     width: 100,
                     fit: BoxFit.cover,
@@ -176,18 +176,18 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (_base64Image != null) {
-                  _imageUrl = await _uploadImage();
+                if (base64Image != null) {
+                  imageUrl = await uploadImage();
                 }
 
-                if (_imageUrl == null && artwork != null) {
-                  _imageUrl = artwork.photoUrl;
+                if (imageUrl == null && artwork != null) {
+                  imageUrl = artwork.photoUrl;
                 }
 
                 final newArtwork = ArtworkModel(
                   id: artwork?.id,
                   name: nameController.text,
-                  photoUrl: _imageUrl ?? '',
+                  photoUrl: imageUrl ?? '',
                   publicationDate: artwork?.publicationDate ?? DateTime.now(),
                   description: descriptionController.text,
                   tools: toolsController.text
@@ -219,6 +219,57 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
     );
   }
 
+  void _showArtworkDetails(ArtworkModel artwork) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        contentPadding: EdgeInsets.zero,
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CachedNetworkImage(
+                imageUrl: artwork.photoUrl,
+                placeholder: (context, url) => CircularProgressIndicator(),
+                errorWidget: (context, url, error) => Icon(Icons.error),
+                fit: BoxFit.cover,
+                height: 300,
+              ),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      artwork.name,
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text(artwork.description),
+                    SizedBox(height: 16),
+                    Text('Ubicación: ${artwork.location}'),
+                    SizedBox(height: 8),
+                    Text('Herramientas: ${artwork.tools.join(", ")}'),
+                    SizedBox(height: 8),
+                    Text(
+                        'Fecha de publicación: ${artwork.publicationDate.toString().split(' ')[0]}'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (artist == null) {
@@ -228,6 +279,7 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
     }
 
     return Scaffold(
+      backgroundColor: Color(0XFFFFFFFF),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -467,73 +519,94 @@ class ArtistProfilePageState extends State<ArtistProfilePage> {
                       print(
                           'Loading artwork ${artwork.id}: ${artwork.photoUrl}');
 
-                      return GestureDetector(
-                        onTap: () => _showArtworkDialog(artwork: artwork),
-                        child: Card(
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: artwork.photoUrl.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: artwork.photoUrl,
-                                        placeholder: (context, url) =>
-                                            CircularProgressIndicator(),
-                                        errorWidget: (context, url, error) {
-                                          print('Error loading image: $error');
-                                          return Container(
+                      return Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => _showArtworkDetails(artwork),
+                                    child: artwork.photoUrl.isNotEmpty
+                                        ? CachedNetworkImage(
+                                            imageUrl: artwork.photoUrl,
+                                            placeholder: (context, url) =>
+                                                CircularProgressIndicator(),
+                                            errorWidget: (context, url, error) {
+                                              print(
+                                                  'Error loading image: $error');
+                                              return Container(
+                                                color: Colors.grey[200],
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.error_outline,
+                                                      color: Colors.red,
+                                                      size: 30,
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      'Error al cargar',
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Container(
                                             color: Colors.grey[200],
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.error_outline,
-                                                  color: Colors.red,
-                                                  size: 30,
-                                                ),
-                                                SizedBox(height: 8),
-                                                Text(
-                                                  'Error al cargar',
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.grey[400],
+                                                size: 30,
+                                              ),
                                             ),
-                                          );
-                                        },
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        color: Colors.grey[200],
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.image,
-                                            color: Colors.grey[400],
-                                            size: 30,
                                           ),
-                                        ),
-                                      ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.all(8),
-                                color: Colors.white,
-                                child: Text(
-                                  artwork.name,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  color: Colors.white,
+                                  child: Text(
+                                    artwork.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              bottom: 40,
+                              right: 8,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon:
+                                      Icon(Icons.edit, color: Colors.blue[600]),
+                                  onPressed: () =>
+                                      _showArtworkDialog(artwork: artwork),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     },

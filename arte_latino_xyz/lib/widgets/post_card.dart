@@ -16,7 +16,7 @@ class PostCard extends StatefulWidget {
   final bool isVideo;
 
   const PostCard({
-    Key? key,
+    super.key,
     required this.postId,
     required this.username,
     required this.mediaUrl,
@@ -25,7 +25,7 @@ class PostCard extends StatefulWidget {
     required this.userPhotoUrl,
     required this.comments,
     required this.isVideo,
-  }) : super(key: key);
+  });
 
   @override
   PostCardState createState() => PostCardState();

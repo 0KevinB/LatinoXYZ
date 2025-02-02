@@ -23,6 +23,7 @@ class LikesPage extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Color(0XFFFFFFFF),
       appBar: AppBar(
         title: Text(
           'Mis Favoritos',

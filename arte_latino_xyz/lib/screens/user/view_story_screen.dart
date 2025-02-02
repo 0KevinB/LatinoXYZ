@@ -6,7 +6,7 @@ import 'package:video_player/video_player.dart';
 class ViewStoryScreen extends StatefulWidget {
   final String userId;
 
-  const ViewStoryScreen({Key? key, required this.userId}) : super(key: key);
+  const ViewStoryScreen({super.key, required this.userId});
 
   @override
   _ViewStoryScreenState createState() => _ViewStoryScreenState();
@@ -142,8 +142,7 @@ class _ViewStoryScreenState extends State<ViewStoryScreen> {
 class _VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
 
-  const _VideoPlayerWidget({Key? key, required this.videoUrl})
-      : super(key: key);
+  const _VideoPlayerWidget({super.key, required this.videoUrl});
 
   @override
   __VideoPlayerWidgetState createState() => __VideoPlayerWidgetState();

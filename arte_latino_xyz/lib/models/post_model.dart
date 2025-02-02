@@ -9,6 +9,7 @@ class PostModel {
   final List<Comment> comments;
   final List<String> likes;
   final String? mediaUrl;
+  final bool isVideo; // Added isVideo field
 
   PostModel({
     required this.id,
@@ -19,6 +20,7 @@ class PostModel {
     required this.comments,
     required this.likes,
     this.mediaUrl,
+    this.isVideo = false, // Default value is false
   });
 
   factory PostModel.fromMap(Map<String, dynamic> map, String id) {
@@ -41,6 +43,7 @@ class PostModel {
           .toList(),
       likes: List<String>.from(map['likes'] ?? []),
       mediaUrl: map['mediaUrl'],
+      isVideo: map['isVideo'] ?? false, // Parse isVideo from map
     );
   }
 
@@ -53,6 +56,7 @@ class PostModel {
       'comments': comments.map((comment) => comment.toMap()).toList(),
       'likes': likes,
       'mediaUrl': mediaUrl,
+      'isVideo': isVideo, // Include isVideo in map
     };
   }
 }

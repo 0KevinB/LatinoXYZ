@@ -19,10 +19,10 @@ class MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const ExploreScreen(),
-    LikesPage(), // Replace with actual Favorites screen
-    const MarketplacePage(), // Replace with actual Cart screen
-    const SearchPage(), // Replace with actual Search screen
-    const ArtistProfilePage(), // Replace with actual Profile screen
+    LikesPage(),
+    const MarketplacePage(),
+    const SearchPage(),
+    const ArtistProfilePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -33,15 +33,70 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-    );
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
       ),
+    );
+  }
+}
+
+class CustomBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+
+  const CustomBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
+      backgroundColor: Colors.white,
+      selectedItemColor: const Color(0xFF201658),
+      unselectedItemColor: const Color(0xFF201658).withOpacity(0.5),
+      type: BottomNavigationBarType.fixed,
+      selectedLabelStyle: const TextStyle(
+        fontSize: 12, // Tamaño del texto cuando está seleccionado
+        fontWeight:
+            FontWeight.w600, // Un poco más grueso cuando está seleccionado
+      ),
+      unselectedLabelStyle: const TextStyle(
+        fontSize: 11, // Tamaño del texto cuando no está seleccionado
+        fontWeight: FontWeight.normal,
+      ),
+      iconSize: 24, // Tamaño de los iconos
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Inicio',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite),
+          label: 'Favoritos',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.store),
+          label: 'Marketplace',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search),
+          label: 'Buscar',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Perfil',
+        ),
+      ],
     );
   }
 }

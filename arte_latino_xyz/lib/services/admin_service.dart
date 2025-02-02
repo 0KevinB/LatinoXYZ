@@ -32,7 +32,7 @@ class AdminService {
       });
     } catch (e) {
       print('Error validating artist: $e');
-      throw e;
+      rethrow;
     }
   }
 }

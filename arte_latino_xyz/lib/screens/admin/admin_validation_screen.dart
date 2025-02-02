@@ -3,7 +3,7 @@ import '../../models/user_model.dart';
 import '../../services/admin_service.dart';
 
 class ArtistValidationScreen extends StatefulWidget {
-  const ArtistValidationScreen({Key? key}) : super(key: key);
+  const ArtistValidationScreen({super.key});
 
   @override
   _ArtistValidationScreenState createState() => _ArtistValidationScreenState();
@@ -98,16 +98,16 @@ class _ArtistValidationScreenState extends State<ArtistValidationScreen> {
                               ElevatedButton(
                                 onPressed: () =>
                                     _validateArtist(artist.uid, true),
-                                child: Text('Aprobar'),
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green),
+                                child: Text('Aprobar'),
                               ),
                               ElevatedButton(
                                 onPressed: () =>
                                     _validateArtist(artist.uid, false),
-                                child: Text('Rechazar'),
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red),
+                                child: Text('Rechazar'),
                               ),
                             ],
                           ),

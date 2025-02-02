@@ -7,7 +7,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 
 class ArtistVerificationScreen extends StatefulWidget {
-  const ArtistVerificationScreen({Key? key}) : super(key: key);
+  const ArtistVerificationScreen({super.key});
 
   @override
   _ArtistVerificationScreenState createState() =>
@@ -28,8 +28,8 @@ class _ArtistVerificationScreenState extends State<ArtistVerificationScreen> {
   final _artTypeService = ArtTypeService();
   final _authService = AuthService();
   bool _isLoading = false;
-  Map<String, bool> _selectedCategories = {};
-  Map<String, List<String>> _selectedSubcategories = {};
+  final Map<String, bool> _selectedCategories = {};
+  final Map<String, List<String>> _selectedSubcategories = {};
 
   @override
   void initState() {

@@ -344,12 +344,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTextField(
-          _imageUrlController,
-          'URL de la imagen (opcional)',
-          false,
-          icon: Icons.link,
-        ),
+        // _buildTextField(
+        //   _imageUrlController,
+        //   'URL de la imagen (opcional)',
+        //   false,
+        //   icon: Icons.link,
+        // ),
         const SizedBox(height: 16),
         ElevatedButton.icon(
           onPressed: _pickImage,
@@ -400,7 +400,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 20),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(25),
         ),
         elevation: 0,
       ),
